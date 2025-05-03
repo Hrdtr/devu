@@ -70,7 +70,8 @@ console.info(`\n> Committing and pushing to '${targetBranch}' branch\n`)
 if (!dryRun) {
   await $`git add .`
   await $`git commit -m "chore(release): v${nextVersion}"`
-  await $`git push origin HEAD:${targetBranch}`
+  await $`git push origin HEAD:${targetBranch} -f`
+  await $`git push origin main`
 }
 else {
   console.info('[dry-run] Skipping commit & push')

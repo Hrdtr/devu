@@ -225,10 +225,7 @@ try {
   for (const path of [rootPackagePath, apiPackagePath, packagePath]) {
     originalFiles[path] = readFileSync(path, 'utf-8')
     const pkg = JSON.parse(originalFiles[path])
-    safeWriteFile(
-      packagePath,
-      `${JSON.stringify({ ...pkg, version: nextVersion }, null, 2)}\n`,
-    )
+    safeWriteFile(path, `${JSON.stringify({ ...pkg, version: nextVersion }, null, 2)}\n`)
   }
 
   // tauri[.alpha|.beta].conf.json
