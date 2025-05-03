@@ -4,14 +4,14 @@
   "version": "1.0.0-beta.0",
   "private": true,
   "scripts": {
-    "dev": "bun run api:build && vite",
-    "build": "bun run api:build && bun run typecheck && vite build",
+    "dev": "bun run prepare && vite",
+    "build": "bun run prepare && bun run typecheck && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint",
     "typecheck": "vue-tsc --noEmit",
-    "postinstall": "bun run api:build",
-    "api:build": "bun run --filter devu-api build --out ../devu/tauri/binaries/devu-api"
+    "prepare": "bun run prepare:api",
+    "prepare:api": "bun run --filter devu-api build --out ../devu/tauri/binaries/devu-api"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",

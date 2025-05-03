@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "bun run --filter '*' lint",
     "typecheck": "bun run --filter '*' typecheck",
-    "postinstall": "husky"
+    "postinstall": "husky && bun run --filter 'devu' prepare"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.12.0",
