@@ -17,7 +17,7 @@ const { values: argv } = parseArgs({
 
 const rustInfo = execSync('rustc -vV', { encoding: 'utf-8' })
 // eslint-disable-next-line regexp/no-useless-flag
-const targetTriple = /host: (\S+)/g.exec(rustInfo)?.[1]
+const targetTriple = process.env.API_BUILD_TARGET_TRIPLE || /host: (\S+)/g.exec(rustInfo)?.[1]
 if (!targetTriple) {
   throw new Error('Failed to determine platform target triple')
 }

@@ -44,10 +44,17 @@ jobs:
 
       - name: install frontend dependencies
         run: bun install --frozen-lockfile
+        env:
+          # Explicitly set the build target triple for macOS x86_64 builds.
+          # The `macos-latest` runner runs on arm64 hardware, which breaks auto-detection.
+          # This ensures consistent cross-compilation targeting x86_64-apple-darwin.
+          # See: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+          API_BUILD_TARGET_TRIPLE: ${{ matrix.platform == 'macos-latest' && contains(matrix.args, 'x86_64-apple-darwin') && 'x86_64-apple-darwin' || '' }}
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
           projectPath: 'apps/devu'
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
