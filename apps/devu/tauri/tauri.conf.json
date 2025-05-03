@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Devu",
+  "productName": "devu",
   "version": "1.0.0",
   "identifier": "dev.hrdtr.devu",
   "build": {

@@ -51,6 +51,10 @@ jobs:
           # See: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
           API_BUILD_TARGET_TRIPLE: ${{ matrix.platform == 'macos-latest' && contains(matrix.args, 'x86_64-apple-darwin') && 'x86_64-apple-darwin' || '' }}
 
+      - name: Patch MSI versions (Windows only)
+        if: matrix.platform == 'windows-latest'
+        run: bun run ./scripts/conf-semver-to-msi-version.ts
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
