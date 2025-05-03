@@ -3,7 +3,7 @@ import { $ } from 'bun'
 import semver from 'semver'
 
 const currentBranch = (await $`git rev-parse --abbrev-ref HEAD`.text()).trim()
-if (currentBranch !== 'test') {
+if (currentBranch !== 'main') {
   console.error(`\nCannot run release script from '${currentBranch}' branch. Switch to 'main' first.\n`)
   process.exit(1)
 }
@@ -11,6 +11,17 @@ if (currentBranch !== 'test') {
 const status = (await $`git status --porcelain`.text()).trim()
 if (status.length > 0) {
   console.error(`\nYou have uncommitted changes. Please commit or stash them before continuing.\n`)
+  process.exit(1)
+}
+
+// Ensure current commit is pushed to origin/main
+const localHead = (await $`git rev-parse HEAD`.text()).trim()
+const remoteHead = (await $`git rev-parse origin/main`.text()).trim()
+if (localHead !== remoteHead) {
+  console.error(`\nLocal 'main' branch is ahead or out of sync with 'origin/main'.\n`)
+  console.error(`HEAD Local  : ${localHead}`)
+  console.error(`HEAD Branch : ${remoteHead}`)
+  console.error(`\nPush your changes or pull the latest commits before continuing.\n`)
   process.exit(1)
 }
 
