@@ -2,17 +2,17 @@ import process from 'node:process'
 import { $ } from 'bun'
 import semver from 'semver'
 
-// const currentBranch = (await $`git rev-parse --abbrev-ref HEAD`.text()).trim()
-// if (currentBranch !== 'test') {
-//   console.error(`\nCannot run release script from '${currentBranch}' branch. Switch to 'main' first.\n`)
-//   process.exit(1)
-// }
+const currentBranch = (await $`git rev-parse --abbrev-ref HEAD`.text()).trim()
+if (currentBranch !== 'test') {
+  console.error(`\nCannot run release script from '${currentBranch}' branch. Switch to 'main' first.\n`)
+  process.exit(1)
+}
 
-// const status = (await $`git status --porcelain`.text()).trim()
-// if (status.length > 0) {
-//   console.error(`\nYou have uncommitted changes. Please commit or stash them before continuing.\n`)
-//   process.exit(1)
-// }
+const status = (await $`git status --porcelain`.text()).trim()
+if (status.length > 0) {
+  console.error(`\nYou have uncommitted changes. Please commit or stash them before continuing.\n`)
+  process.exit(1)
+}
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
