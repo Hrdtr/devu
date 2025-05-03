@@ -29,9 +29,13 @@ const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 
 const bumpArgs = ['run', './scripts/bump-version.ts', ...args]
+const dryRunBumpArgs = ['run', './scripts/bump-version.ts', ...args]
+if (!dryRun) {
+  dryRunBumpArgs.push('--dry-run')
+}
 
 // Determine next version
-const output = (await $`bun ${bumpArgs}`.text()).trim()
+const output = (await $`bun ${dryRunBumpArgs}`.text()).trim()
 const match = output.match(/Bumping version from .* to (.+)/)
 if (!match || !semver.valid(match[1])) {
   console.error('Could not parse next version from bump-version output')
