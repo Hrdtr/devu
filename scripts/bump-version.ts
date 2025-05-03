@@ -201,11 +201,25 @@ try {
   // const rootPackagePath = resolve(process.cwd(), 'package.json') // Already defined above.
   const apiPackagePath = resolve(process.cwd(), 'apps/devu-api/package.json')
   const packagePath = resolve(process.cwd(), 'apps/devu/package.json')
-  const configStablePath = resolve(process.cwd(), 'apps/devu/tauri/tauri.conf.json')
+  const configAlphaPath = resolve(process.cwd(), 'apps/devu/tauri/tauri.alpha.conf.json')
   const configBetaPath = resolve(process.cwd(), 'apps/devu/tauri/tauri.beta.conf.json')
+  const configStablePath = resolve(process.cwd(), 'apps/devu/tauri/tauri.conf.json')
   const cargoTomlPath = resolve(process.cwd(), 'apps/devu/tauri/Cargo.toml')
+  let configPath = configStablePath
 
-  const configPath = nextIsStable ? configStablePath : configBetaPath
+  if (nextPrerelease && !nextIsStable) {
+    const [nextId] = nextPrerelease
+    if (nextId === 'alpha') {
+      configPath = configAlphaPath
+    }
+    else if (nextId === 'beta') {
+      configPath = configBetaPath
+    }
+    else {
+      console.error('Failed to determine config path')
+      process.exit(1)
+    }
+  }
 
   // package.json
   for (const path of [rootPackagePath, apiPackagePath, packagePath]) {
@@ -217,9 +231,9 @@ try {
     )
   }
 
-  // tauri[.beta].conf.json
+  // tauri[.alpha|.beta].conf.json
   originalFiles[configPath] = readFileSync(configPath, 'utf-8')
-  const conf = JSON.parse(originalFiles[configPath])
+  const conf = JSON.parse(originalFiles[configPath]!)
   safeWriteFile(
     configPath,
     `${JSON.stringify({ ...conf, version: nextVersion }, null, 2)}\n`,

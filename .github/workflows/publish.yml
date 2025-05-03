@@ -1,0 +1,113 @@
+name: publish
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  commit-release-json:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to push to the repo
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for all tags and branches
+
+      - name: Get latest.json from release
+        # Use the GitHub CLI to download the specific asset from the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download ${{ github.event.release.tag_name }} \
+            --pattern 'latest.json' \
+            --output release.json
+          cat release.json
+
+      - name: Determine branch from release target commitish or commit history
+        id: get-branch
+        run: |
+          # Get the target commitish (branch name or commit SHA)
+          TARGET_COMMITISH="${{ github.event.release.target_commitish }}"
+          echo "Release target commitish: $TARGET_COMMITISH"
+
+          # First, check if target_commitish is one of the exact branch names
+          if [[ "$TARGET_COMMITISH" == "alpha" ]]; then
+            echo "branch=alpha" >> "$GITHUB_OUTPUT"
+            echo "Determined branch (from target_commitish): alpha"
+          elif [[ "$TARGET_COMMITISH" == "beta" ]]; then
+            echo "branch=beta" >> "$GITHUB_OUTPUT"
+            echo "Determined branch (from target_commitish): beta"
+          elif [[ "$TARGET_COMMITISH" == "stable" ]]; then
+            echo "branch=stable" >> "$GITHUB_OUTPUT"
+            echo "Determined branch (from target_commitish): stable"
+          else
+            # If not an exact branch name, assume it's a commit SHA and find containing branches
+            echo "Target commitish is not a direct branch name. Assuming SHA: $TARGET_COMMITISH"
+            echo "Checking which branches contain commit $TARGET_COMMITISH..."
+            # Fetch latest refs from origin for the target branches
+            # Use --no-tags to avoid fetching all tags again
+            git fetch --no-tags --quiet origin alpha beta stable
+            # List remote branches containing the commit
+            # Use HEAD commit SHA as target_commitish might be ambiguous if it's just a branch name here
+            COMMIT_SHA=$(git rev-parse HEAD)
+            echo "Using commit SHA: $COMMIT_SHA"
+            CONTAINING_BRANCHES=$(git branch -r --contains $COMMIT_SHA | grep -E 'origin/(alpha|beta|stable)$')
+            echo "Remote branches containing the commit:"
+            echo "$CONTAINING_BRANCHES"
+
+            # Determine branch based on which tracked branch contains the commit
+            # Prioritize alpha > beta > stable if multiple contain the commit (e.g., stable might contain a commit also in beta)
+            if echo "$CONTAINING_BRANCHES" | grep -q 'origin/alpha$'; then
+              echo "branch=alpha" >> "$GITHUB_OUTPUT"
+              echo "Determined branch (from commit containment): alpha"
+            elif echo "$CONTAINING_BRANCHES" | grep -q 'origin/beta$'; then
+              echo "branch=beta" >> "$GITHUB_OUTPUT"
+              echo "Determined branch (from commit containment): beta"
+            elif echo "$CONTAINING_BRANCHES" | grep -q 'origin/stable$'; then
+              echo "branch=stable" >> "$GITHUB_OUTPUT"
+              echo "Determined branch (from commit containment): stable"
+            else
+              # If commit is not found in expected branches
+              echo "Error: Commit $COMMIT_SHA not found in origin/alpha, origin/beta, or origin/stable."
+              exit 1
+            fi
+          fi
+
+      - name: Commit release.json to target branch
+        run: |
+          # Configure git user identity for the commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          TARGET_BRANCH="${{ steps.get-branch.outputs.branch }}"
+          echo "Target branch determined as: $TARGET_BRANCH"
+
+          # Check out the target branch
+          echo "Checking out target branch $TARGET_BRANCH"
+          # Fetch the specific branch first to ensure it exists and is up-to-date
+          git fetch origin $TARGET_BRANCH:$TARGET_BRANCH
+          git checkout $TARGET_BRANCH
+
+          # Ensure the branch is up-to-date (pull again after checkout)
+          # Use --ff-only to avoid merge commits if history diverged unexpectedly
+          git pull origin $TARGET_BRANCH --ff-only
+
+          # Add the file to the git staging area
+          git add release.json
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes detected in release.json. Nothing to commit."
+          else
+            echo "Committing updated release.json."
+            # Commit the changes with a descriptive message
+            git commit -m "chore: update release.json for release ${{ github.event.release.tag_name }}"
+
+            # Push the commit to the target branch on the remote repository
+            echo "Pushing changes to origin/$TARGET_BRANCH."
+            git push origin HEAD:$TARGET_BRANCH
+          fi
