@@ -15,6 +15,9 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bun run lint
+      - run: bun run lint --fix
       - run: bun run typecheck
       - run: bun test
+      - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
+        with:
+          commit-message: 'chore: apply automated updates'
