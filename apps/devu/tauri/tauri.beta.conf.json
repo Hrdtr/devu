@@ -1,7 +1,5 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Devu Beta",
-  "mainBinaryName": "devu-beta",
   "version": "1.0.0-beta.0",
   "identifier": "dev.hrdtr.devu-beta",
   "app": {
