@@ -14,7 +14,7 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     outputs:
-      id: ${{ steps.release-draft.outputs.id }}
+      id: ${{ steps.release-draft.outputs.result }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,23 +25,23 @@ jobs:
           echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub release draft
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "v${{ steps.get-version.outputs.version }}" \
-            --title "v${{ steps.get-version.outputs.version }}" \
-            --notes "Take a look at the assets to download and install this app." \
-            --draft \
-            --target "${{ github.ref_name }}"
-
-      - name: Get GitHub release ID
+      - name: Prepare GitHub release draft
         id: release-draft
+        uses: actions/github-script@v6
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_ID=$(gh release view "v${{ steps.get-version.outputs.version }}" --json id -q ".id")
-          echo "id=$RELEASE_ID" >> $GITHUB_OUTPUT
+          REF_NAME: ${{ github.ref_name }}
+        with:
+          script: |
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${process.env.PACKAGE_VERSION}`,
+              name: `v${process.env.PACKAGE_VERSION}`,
+              body: 'Take a look at the assets to download and install.',
+              draft: true,
+              prerelease: process.env.REF_NAME !== 'stable'
+            })
+            return data.id
 
   build:
     needs: create-release
