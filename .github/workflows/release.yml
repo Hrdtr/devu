@@ -32,8 +32,8 @@ jobs:
           gh release create "v${{ steps.get-version.outputs.version }}" \
             --title "v${{ steps.get-version.outputs.version }}" \
             --notes "Take a look at the assets to download and install this app." \
-            --draft
-            --target "${{ github.ref_name }}" \
+            --draft \
+            --target "${{ github.ref_name }}"
 
       - name: Get GitHub release ID
         id: release-draft
