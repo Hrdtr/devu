@@ -8,7 +8,40 @@ on:
       - stable
 
 jobs:
-  publish-tauri:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.release-draft.outputs.id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.get-version.outputs.version }}" \
+            --title "v${{ steps.get-version.outputs.version }}" \
+            --notes "Take a look at the assets to download and install this app." \
+            --draft
+            --target "${{ github.ref_name }}" \
+
+      - name: Get GitHub release ID
+        id: release-draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID=$(gh release view "v${{ steps.get-version.outputs.version }}" --json id -q ".id")
+          echo "id=$RELEASE_ID" >> $GITHUB_OUTPUT
+
+  build:
+    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -61,14 +94,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
           projectPath: 'apps/devu'
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           tauriScript: 'bun run tauri'
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseId: ${{ needs.create-release.outputs.id }}
+          releaseDraft: true
           includeDebug: ${{ github.ref_name != 'stable' }}
           includeUpdaterJson: true
-          includeRelease: true
-          releaseName: 'v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: ${{ github.ref_name != 'stable' }}
           args: >-
             ${{ github.ref_name == 'alpha' && '--config tauri/tauri.alpha.conf.json ' ||  github.ref_name == 'beta' && '--config tauri/tauri.beta.conf.json ' ||  '' }}${{ matrix.args }}
