@@ -66,11 +66,17 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './apps/devu/tauri -> target'
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
@@ -87,7 +93,7 @@ jobs:
           # See: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
           API_BUILD_TARGET_TRIPLE: ${{ matrix.platform == 'macos-latest' && contains(matrix.args, 'x86_64-apple-darwin') && 'x86_64-apple-darwin' || '' }}
 
-      - name: Patch MSI versions (Windows only)
+      - name: patch MSI versions (Windows only)
         if: matrix.platform == 'windows-latest'
         run: bun run ./scripts/conf-semver-to-msi-version.ts
 

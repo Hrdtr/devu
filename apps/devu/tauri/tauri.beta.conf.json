@@ -1,12 +1,13 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "devu-beta",
+  "productName": "Devu Beta",
+  "mainBinaryName": "devu-beta",
   "version": "1.0.0-beta.0",
   "identifier": "dev.hrdtr.devu-beta",
   "app": {
     "windows": [
       {
-        "title": "Devu Beta",
+        "title": "Devu (Beta)",
         "width": 900,
         "height": 600,
         "titleBarStyle": "Overlay",
