@@ -1,0 +1,11 @@
+Error happened while building AppImage bundle:
+...
+[gtk/stdout] -- Deploying dependencies for existing files in AppDir --
+[gtk/stdout] Deploying dependencies for ELF file /workspaces/devu/apps/devu/tauri/target/release/bundle/appimage/Devu.AppDir/usr/bin/devu-api
+[gtk/stderr] terminate called after throwing an instance of 'std::runtime_error'
+[gtk/stderr]   what():  Failed to run ldd: exited with code 1
+[gtk/stderr] /home/vscode/.cache/tauri/linuxdeploy-plugin-gtk.sh: line 296: 32629 Aborted                 (core dumped) env LINUXDEPLOY_PLUGIN_MODE=1 "$LINUXDEPLOY" --appdir="$APPDIR" "${LIBRARIES[@]}"
+ERROR: Failed to run plugin: gtk (exit code: 134)
+failed to bundle project: `failed to run /home/vscode/.cache/tauri/linuxdeploy-x86_64.AppImage`
+       Error [tauri_cli_node] failed to bundle project: `failed to run /home/vscode/.cache/tauri/linuxdeploy-x86_64.AppImage`
+error: script "tauri" exited with code 1

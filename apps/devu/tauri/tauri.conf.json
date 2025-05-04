@@ -3,7 +3,7 @@
   "productName": "Devu",
   "mainBinaryName": "devu",
   "version": "1.0.0",
-  "identifier": "dev.hrdtr.devu",
+  "identifier": "dev.hrdtr.devu-development",
   "build": {
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "bun run dev",
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "Devu",
+        "title": "Devu (Development)",
         "width": 900,
         "height": 600,
         "titleBarStyle": "Overlay",

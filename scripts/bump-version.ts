@@ -201,9 +201,10 @@ try {
   // const rootPackagePath = resolve(process.cwd(), 'package.json') // Already defined above.
   const apiPackagePath = resolve(process.cwd(), 'apps/devu-api/package.json')
   const packagePath = resolve(process.cwd(), 'apps/devu/package.json')
+  const configDevelopmentPath = resolve(process.cwd(), 'apps/devu/tauri/tauri.conf.json')
   const configAlphaPath = resolve(process.cwd(), 'apps/devu/tauri/tauri.alpha.conf.json')
   const configBetaPath = resolve(process.cwd(), 'apps/devu/tauri/tauri.beta.conf.json')
-  const configStablePath = resolve(process.cwd(), 'apps/devu/tauri/tauri.conf.json')
+  const configStablePath = resolve(process.cwd(), 'apps/devu/tauri/tauri.stable.conf.json')
   const cargoTomlPath = resolve(process.cwd(), 'apps/devu/tauri/Cargo.toml')
   let configPath = configStablePath
 
@@ -228,12 +229,20 @@ try {
     safeWriteFile(path, `${JSON.stringify({ ...pkg, version: nextVersion }, null, 2)}\n`)
   }
 
-  // tauri[.alpha|.beta].conf.json
+  // tauri[.alpha|.beta|.stable].conf.json
   originalFiles[configPath] = readFileSync(configPath, 'utf-8')
-  const conf = JSON.parse(originalFiles[configPath]!)
+  const config = JSON.parse(originalFiles[configPath]!)
   safeWriteFile(
     configPath,
-    `${JSON.stringify({ ...conf, version: nextVersion }, null, 2)}\n`,
+    `${JSON.stringify({ ...config, version: nextVersion }, null, 2)}\n`,
+  )
+
+  // Development config should always be updated
+  originalFiles[configDevelopmentPath] = readFileSync(configDevelopmentPath, 'utf-8')
+  const configDevelopment = JSON.parse(originalFiles[configDevelopmentPath])
+  safeWriteFile(
+    configDevelopmentPath,
+    `${JSON.stringify({ ...configDevelopment, version: nextVersion }, null, 2)}\n`,
   )
 
   // Cargo.toml

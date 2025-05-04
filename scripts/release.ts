@@ -63,13 +63,11 @@ if (prerelease && prerelease.length > 0) {
   }
 }
 
-console.info(`\n> Bumping version to '${nextVersion}'\n`)
-
 if (!dryRun) {
   await $`bun ${bumpArgs}`
 }
 
-console.info(`\n> Committing and pushing to '${targetBranch}' branch\n`)
+console.info(`\nCommitting and pushing to '${targetBranch}' branch\n`)
 
 if (!dryRun) {
   await $`git add .`
