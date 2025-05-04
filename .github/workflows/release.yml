@@ -96,9 +96,7 @@ jobs:
         with:
           projectPath: 'apps/devu'
           tauriScript: 'bun run tauri'
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseId: ${{ needs.create-release.outputs.id }}
-          releaseDraft: true
           includeDebug: ${{ github.ref_name != 'stable' }}
           includeUpdaterJson: true
           args: >-
