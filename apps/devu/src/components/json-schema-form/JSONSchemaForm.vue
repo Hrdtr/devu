@@ -142,7 +142,8 @@ defineExpose({
 <template>
   <Primitive v-bind="primitiveProps" @submit="primitiveProps.as === 'form' ? submit : undefined">
     <JSONSchemaFormField
-      v-for="field in fields" :key="field.name"
+      v-for="field in fields"
+      :key="field.name"
       v-bind="{ ...field, actions: { paste: true }, disabled: props.disabled, readonly: props.readonly }"
       class="mb-4"
     />

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { LLMProvider } from '@/composables/use-llm-chat-db'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useLLMChatProfiles } from '@/composables/use-llm-chat-profile'
+import { useLLMChatProfile } from '@/composables/use-llm-chat-profile'
 import { toTypedSchema } from '@vee-validate/zod'
 import { ErrorMessage, Field, useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
@@ -19,10 +18,10 @@ const emit = defineEmits<{
   updated: [profile: typeof _profiles.value[number]]
 }>()
 
-const { profiles: _profiles, createProfile, updateProfile } = useLLMChatProfiles()
+const { profiles: _profiles, createProfile, updateProfile } = useLLMChatProfile()
 
-const providers: LLMProvider[] = ['openai', 'anthropic', 'google-genai', 'ollama']
-const provider = ref<LLMProvider>(props.update?.provider || 'openai')
+const providers = ['openai', 'anthropic', 'google-genai', 'ollama']
+const provider = ref(props.update && providers.includes(props.update.provider) ? props.update.provider : 'openai')
 
 const providerSpecificShape = {
   'openai': {
@@ -55,8 +54,8 @@ const providerSpecificShape = {
 const schema = computed(() => toTypedSchema(z.object({
   name: z.string().min(1),
   model: z.string().min(1),
-  additional_system_prompt: z.string().nullable().default(null),
-  ...providerSpecificShape[provider.value],
+  additionalSystemPrompt: z.string().nullable().default(null),
+  ...providerSpecificShape[provider.value as keyof typeof providerSpecificShape],
 })))
 
 const { setValues, handleSubmit, isSubmitting, resetForm } = useForm({
@@ -75,11 +74,15 @@ watch(provider, () => resetForm())
 const submit = handleSubmit(async (formValues) => {
   if (props.update) {
     const profile = await updateProfile(props.update.id, { provider: provider.value, ...formValues })
-    emit('updated', profile)
+    if (profile) {
+      emit('updated', profile)
+    }
   }
   else {
     const profile = await createProfile({ provider: provider.value, ...formValues })
-    emit('created', profile)
+    if (profile) {
+      emit('created', profile)
+    }
   }
 }, console.error)
 </script>
@@ -110,7 +113,7 @@ const submit = handleSubmit(async (formValues) => {
         <p class="text-muted-foreground text-sm mt-1.5">
           This name will be used to identify this profile.
         </p>
-        <ErrorMessage name="name" class="text-destructive text-sm mt-1.5" />
+        <ErrorMessage name="name" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
     </div>
 
@@ -125,7 +128,7 @@ const submit = handleSubmit(async (formValues) => {
           Provider-specific API endpoint base URL.
           {{ provider === 'openai' ? ' Enter a URL here to connect with OpenAI-compatible providers not listed.' : '' }}
         </p>
-        <ErrorMessage name="configuration.baseUrl" class="text-destructive text-sm mt-1.5" />
+        <ErrorMessage name="configuration.baseUrl" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
     </div>
 
@@ -136,7 +139,7 @@ const submit = handleSubmit(async (formValues) => {
         <p class="text-muted-foreground text-sm mt-1.5">
           Provider-specific API Key to be used in every requests.
         </p>
-        <ErrorMessage name="credentials.apiKey" class="text-destructive text-sm mt-1.5" />
+        <ErrorMessage name="credentials.apiKey" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
     </div>
 
@@ -147,20 +150,20 @@ const submit = handleSubmit(async (formValues) => {
         <p class="text-muted-foreground text-sm mt-1.5">
           Provider-specific model id to use.
         </p>
-        <ErrorMessage name="model" class="text-destructive text-sm mt-1.5" />
+        <ErrorMessage name="model" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
     </div>
 
     <div class="mb-4">
-      <Field v-slot="{ componentField }" name="additional_system_prompt">
-        <Label for="additional_system_prompt" class="mb-2">Additional System Prompt <span
+      <Field v-slot="{ componentField }" name="additionalSystemPrompt">
+        <Label for="additionalSystemPrompt" class="mb-2">Additional System Prompt <span
           class="text-muted-foreground"
         >(Optional)</span></Label>
-        <Textarea id="additional_system_prompt" v-bind="{ ...componentField, disabled: isSubmitting }" />
+        <Textarea id="additionalSystemPrompt" v-bind="{ ...componentField, disabled: isSubmitting }" />
         <p class="text-muted-foreground text-sm mt-1.5">
           Provides extra instructions to guide the AI’s behavior or tone during the conversation.
         </p>
-        <ErrorMessage name="additional_system_prompt" class="text-destructive text-sm mt-1.5" />
+        <ErrorMessage name="additionalSystemPrompt" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
     </div>
 

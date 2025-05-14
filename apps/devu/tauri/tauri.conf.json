@@ -6,7 +6,7 @@
   "identifier": "dev.hrdtr.devu-development",
   "build": {
     "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "bun run dev",
+    "beforeDevCommand": "bun vite",
     "beforeBuildCommand": "bun run build",
     "frontendDist": "../dist"
   },
@@ -37,7 +37,10 @@
     ],
     "createUpdaterArtifacts": true,
     "externalBin": [
-      "binaries/devu-api"
+      "binaries/bun"
+    ],
+    "resources": [
+      "resources/**/*"
     ]
   },
   "plugins": {

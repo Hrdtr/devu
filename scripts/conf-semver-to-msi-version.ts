@@ -32,7 +32,7 @@ import process from 'node:process'
 const configPaths = [
   'apps/devu/tauri/tauri.alpha.conf.json',
   'apps/devu/tauri/tauri.beta.conf.json',
-  'apps/devu/tauri/tauri.conf.json',
+  'apps/devu/tauri/tauri.stable.conf.json',
 ].map((path) => {
   // Convert POSIX-style paths to platform-specific paths for proper resolution on Windows
   return resolve(process.cwd(), ...path.split('/'))

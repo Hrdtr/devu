@@ -12,7 +12,7 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@api': path.resolve(__dirname, '../devu-api/src'),
+      '@api': path.resolve(__dirname, '../devu-api'),
     },
   },
 

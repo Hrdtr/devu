@@ -133,3 +133,25 @@
   --root-font-size: 14px;
   font-size: var(--root-font-size);
 }
+
+::-webkit-scrollbar {
+  width: 10px; /* Adjust the width to create space for padding */
+  height: 10px; /* Adjust the height to create space for padding */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Ensure the track is transparent */
+  border-radius: 10px; /* Match the border-radius of the thumb */
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-accent; /* You can adjust this color for the thumb */
+  border-radius: 9999px; /* Match the border-radius of the thumb */
+  background-clip: content-box; /* Ensure the thumb doesn't overlap the track */
+  border: 2px solid transparent; /* Ensure the thumb doesn't overlap the track */
+  box-shadow: 0 0 0 2px transparent; /* Extend the padding with a transparent box-shadow */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-accent; /* You can adjust this color for the hover state */
+}

@@ -10,7 +10,12 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
   <DialogHeader v-if="isDesktop" v-slot="slotProps" v-bind="{ ...$attrs }">
     <slot v-bind="slotProps" />
   </DialogHeader>
-  <DrawerHeader v-else v-slot="slotProps" class="p-0" v-bind="{ ...$attrs }">
+  <DrawerHeader
+    v-else
+    v-slot="slotProps"
+    class="p-0"
+    v-bind="{ ...$attrs }"
+  >
     <slot v-bind="slotProps" />
   </DrawerHeader>
 </template>

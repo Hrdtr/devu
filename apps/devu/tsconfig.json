@@ -4,15 +4,13 @@
     "jsx": "preserve",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "useDefineForClassFields": true,
-
     "baseUrl": ".",
     "module": "ESNext",
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "paths": {
       "@/*": ["./src/*"],
-      "@api/*": ["../devu-api/src/*"]
+      "@api/*": ["../devu-api/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -25,6 +23,9 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "references": [{ "path": "./tsconfig.node.json" }],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../devu-api/tsconfig.declaration.json" }
+  ],
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

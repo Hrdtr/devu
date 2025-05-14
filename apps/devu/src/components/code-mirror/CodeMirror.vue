@@ -602,7 +602,8 @@ const minHeight = computed(() => editor.value?.style.minHeight ? `${editor.value
 
 <template>
   <component
-    :is="props.tag ?? 'div'" ref="editorRef"
+    :is="props.tag ?? 'div'"
+    ref="editorRef"
     class="cm-wrapper flex flex-row w-full h-full [&>.cm-editor]:grow [&>.cm-editor]:w-[0] [&>.cm-editor]:h-full border border-input rounded-md overflow-x-auto transition-[color,box-shadow]"
     :class="[
       focus ? 'border-ring ring-ring/50 ring-[3px]' : '',

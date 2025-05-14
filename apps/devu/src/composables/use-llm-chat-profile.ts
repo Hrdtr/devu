@@ -1,81 +1,90 @@
-import type { Profile } from './use-llm-chat-db'
-import { createSharedComposable, useDebounceFn } from '@vueuse/core'
-import { computed, watch } from 'vue'
-import { useLLMChatDB } from './use-llm-chat-db'
+import type { ApiRouteInput, ApiRouteOutput } from './use-api'
+import { createSharedComposable } from '@vueuse/core'
+import { onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
+import { useApi } from './use-api'
 
-export function _useLLMChatProfiles() {
-  const { createId, liveQuery, db } = useLLMChatDB()
+export function _useLLMChatProfile() {
+  const { client, safe } = useApi()
 
-  const { rows } = liveQuery.sql<Profile>`SELECT * FROM profiles`
+  const profileState = ref<'idle' | 'loading' | 'pending'>('idle')
 
-  const profiles = computed(() => rows.value || [])
+  const profiles = ref<ApiRouteOutput['llmChat']['profile']['list']['data']>([])
 
-  const createDefaultProfile = useDebounceFn(() => {
-    return createProfile({
-      name: 'Ollama - Llama 3.2:3B',
-      provider: 'ollama',
-      configuration: {
-        baseUrl: 'http://localhost:11434',
-      },
-      credentials: {},
-      model: 'llama3.2:3b',
-      additional_system_prompt: null,
-    })
-  })
-
-  watch(profiles, (value) => {
-    if (value.length === 0) {
-      createDefaultProfile()
+  const loadProfiles = async () => {
+    if (profileState.value !== 'idle') {
+      return
     }
-  })
+    profileState.value = 'loading'
+    const { data, error } = await safe(client.llmChat.profile.list({ limit: -1 }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      profileState.value = 'idle'
+      return
+    }
+    profiles.value = data.data
+    profileState.value = 'idle'
+  }
+  onMounted(loadProfiles)
 
-  async function createProfile({
-    name,
-    provider,
-    configuration,
-    credentials,
-    model,
-    additional_system_prompt,
-  }: Omit<Profile, 'id' | 'created_at' | 'last_updated_at'>) {
-    const id = createId()
-    const profile = await db.sql<Profile>`
-      INSERT INTO profiles (id, name, provider, configuration, credentials, model, additional_system_prompt)
-      VALUES (${id}, ${name}, ${provider}, ${configuration}, ${credentials}, ${model}, ${additional_system_prompt})
-      RETURNING *`.then(({ rows }) => rows[0])
+  async function createProfile(payload: ApiRouteInput['llmChat']['profile']['create']) {
+    if (profileState.value !== 'idle') {
+      return
+    }
+    profileState.value = 'pending'
+    const { data, error } = await safe(client.llmChat.profile.create(payload))
+    if (error) {
+      toast.error(error?.message || String(error))
+      profileState.value = 'idle'
+      return
+    }
 
-    return profile
+    profiles.value = [data, ...profiles.value]
+    profileState.value = 'idle'
+    return data
   }
 
-  async function updateProfile(
-    id: string,
-    {
-      name,
-      provider,
-      configuration,
-      credentials,
-      model,
-      additional_system_prompt,
-    }: Omit<Profile, 'id' | 'created_at' | 'last_updated_at'>,
-  ): Promise<Profile> {
-    const profile = await db.sql<Profile>`
-      UPDATE profiles SET last_updated_at = ${new Date()}, name = ${name}, provider = ${provider}, configuration = ${configuration}, credentials = ${credentials}, model = ${model}, additional_system_prompt = ${additional_system_prompt}
-      WHERE id = ${id}
-      RETURNING *`.then(({ rows }) => rows[0])
+  async function updateProfile(id: string, payload: Omit<ApiRouteInput['llmChat']['profile']['update'], 'id'>) {
+    if (profileState.value !== 'idle') {
+      return
+    }
+    profileState.value = 'pending'
+    const { data, error } = await safe(client.llmChat.profile.update({ id, ...payload }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      profileState.value = 'idle'
+      return
+    }
 
-    return profile
+    profiles.value = profiles.value.map(profile => profile.id === id ? data : profile)
+    profileState.value = 'idle'
+    return data
   }
 
   async function deleteProfile(id: string) {
-    await db.sql`DELETE FROM profiles WHERE id = ${id}`
+    if (profileState.value !== 'idle') {
+      return
+    }
+    profileState.value = 'pending'
+    const { error } = await safe(client.llmChat.profile.delete({ id }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      profileState.value = 'idle'
+      return
+    }
+
+    profiles.value = profiles.value.filter(profile => profile.id !== id)
+    profileState.value = 'idle'
     return { id }
   }
 
   return {
+    profileState,
     profiles,
+    loadProfiles,
     createProfile,
     updateProfile,
     deleteProfile,
   }
 }
-
-export const useLLMChatProfiles = createSharedComposable(_useLLMChatProfiles)
+export const useLLMChatProfile = createSharedComposable(_useLLMChatProfile)

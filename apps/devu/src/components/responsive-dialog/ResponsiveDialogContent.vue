@@ -16,7 +16,12 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
   <DialogContent v-if="isDesktop" v-slot="slotProps" v-bind="{ ...$attrs, ...forwarded }">
     <slot v-bind="slotProps" />
   </DialogContent>
-  <DrawerContent v-else v-slot="slotProps" class="p-5 pt-0 gap-4" v-bind="{ ...$attrs, ...forwarded }">
+  <DrawerContent
+    v-else
+    v-slot="slotProps"
+    class="p-5 pt-0 gap-4"
+    v-bind="{ ...$attrs, ...forwarded }"
+  >
     <slot v-bind="slotProps" />
   </DrawerContent>
 </template>

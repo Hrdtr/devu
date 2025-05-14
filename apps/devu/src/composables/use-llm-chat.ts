@@ -1,49 +1,129 @@
-import type { Chat } from './use-llm-chat-db'
+import type { MaybeRefOrGetter } from 'vue'
+import type { ApiRouteInput, ApiRouteOutput } from './use-api'
 import { createSharedComposable } from '@vueuse/core'
-import { computed } from 'vue'
-import { useLLMChatDB } from './use-llm-chat-db'
+import { computed, onMounted, ref, toValue, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import { useApi } from './use-api'
 
-export function _useLLMChat() {
-  const { createId, liveQuery, db } = useLLMChatDB()
+export function _useLLMChat({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+  const { client, safe } = useApi()
 
-  const {
-    rows,
-  } = liveQuery.sql<Chat>`SELECT * FROM chats ORDER BY created_at DESC`
+  const chatState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
 
-  const chats = computed(() => rows.value || [])
+  const chats = ref<ApiRouteOutput['llmChat']['list']>({
+    data: [],
+    nextCursor: null,
+  })
 
-  async function createChat() {
-    const chat = await db.sql<Chat>`
-      INSERT INTO chats (id, root_message_id)
-      VALUES (${createId()}, ${createId()})
-      RETURNING *`.then(({ rows }) => rows[0])
+  const loadChats = async () => {
+    if (chatState.value !== 'idle') {
+      return
+    }
+    chatState.value = 'loading'
+    const { data, error } = await safe(client.llmChat.list({
+      search: toValue(search),
+    }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      chatState.value = 'idle'
+      return
+    }
+    chats.value = data
+    chatState.value = 'idle'
+  }
+  onMounted(loadChats)
+  watch(() => toValue(search), loadChats)
 
-    return chat
+  const moreChatsAvailable = computed(() => !!chats.value.nextCursor)
+
+  const loadMoreChats = async () => {
+    if (chatState.value !== 'idle' || !chats.value.nextCursor) {
+      return
+    }
+    chatState.value = 'loadingMore'
+    const nextCursor = chats.value.nextCursor
+    const { data, error } = await safe(client.llmChat.list({
+      search: toValue(search),
+      cursor: nextCursor,
+    }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      chatState.value = 'idle'
+      return
+    }
+    chats.value = {
+      data: [...chats.value.data, ...data.data],
+      nextCursor: data.nextCursor,
+    }
+    chatState.value = 'idle'
   }
 
-  async function updateChat(
-    id: string,
-    {
-      title,
-      last_message_branch_paths,
-    }: Pick<Chat, 'title' | 'last_message_branch_paths'>,
-  ) {
-    const chat = await db.sql<Chat>`
-      UPDATE chats SET title = ${title}, last_message_branch_paths = ${last_message_branch_paths}
-      WHERE id = ${id}
-      RETURNING *`.then(({ rows }) => rows[0])
+  async function createChat() {
+    if (chatState.value !== 'idle') {
+      return
+    }
+    chatState.value = 'pending'
+    const { data, error } = await safe(client.llmChat.create())
+    if (error) {
+      toast.error(error?.message || String(error))
+      chatState.value = 'idle'
+      return
+    }
 
-    return chat
+    chats.value = {
+      data: [data, ...chats.value.data],
+      nextCursor: chats.value.nextCursor,
+    }
+    chatState.value = 'idle'
+    return data
+  }
+
+  async function updateChat(id: string, payload: Omit<ApiRouteInput['llmChat']['update'], 'id'>) {
+    if (chatState.value !== 'idle') {
+      return
+    }
+    chatState.value = 'pending'
+    const { data, error } = await safe(client.llmChat.update({ id, ...payload }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      chatState.value = 'idle'
+      return
+    }
+
+    chats.value = {
+      data: chats.value.data.map(chat => chat.id === id ? data : chat),
+      nextCursor: chats.value.nextCursor,
+    }
+    chatState.value = 'idle'
+    return data
   }
 
   async function deleteChat(id: string) {
-    await db.sql`DELETE FROM messages WHERE chat_id = ${id}`
-    await db.sql`DELETE FROM chats WHERE id = ${id}`
+    if (chatState.value !== 'idle') {
+      return
+    }
+    chatState.value = 'pending'
+    const { error } = await safe(client.llmChat.delete({ id }))
+    if (error) {
+      toast.error(error?.message || String(error))
+      chatState.value = 'idle'
+      return
+    }
+
+    chats.value = {
+      data: chats.value.data.filter(chat => chat.id !== id),
+      nextCursor: chats.value.nextCursor,
+    }
+    chatState.value = 'idle'
     return { id }
   }
 
   return {
+    chatState,
     chats,
+    loadChats,
+    loadMoreChats,
+    moreChatsAvailable,
     createChat,
     updateChat,
     deleteChat,

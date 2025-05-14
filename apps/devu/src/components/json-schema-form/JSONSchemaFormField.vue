@@ -66,8 +66,8 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
 <template>
   <div>
     <Field v-slot="{ componentField, value, handleChange }" :name="props.name">
-      <div class="flex flex-row justify-between gap-4">
-        <Label v-if="props.component !== 'Checkbox'" :for="props.name" class="mb-2">{{ props.label }}</Label>
+      <div class="flex flex-row justify-between items-center gap-4 mb-2">
+        <Label v-if="props.component !== 'Checkbox'" :for="props.name">{{ props.label }}</Label>
         <template
           v-if="
             isSupported
@@ -75,7 +75,7 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
               && ['Input', 'Textarea', 'CodeMirror'].includes(props.component || '')
           "
         >
-          <Tooltip>
+          <Tooltip :delay-duration="500">
             <TooltipTrigger as-child>
               <button type="button" @click="!pasted && paste(handleChange)">
                 <component :is="pasted ? Check : Clipboard" class="size-4" :class="pasted ? 'text-green-500' : ''" />
@@ -94,7 +94,7 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
               && ['Input', 'Textarea', 'CodeMirror'].includes(props.component || '')
           "
         >
-          <Tooltip>
+          <Tooltip :delay-duration="500">
             <TooltipTrigger as-child>
               <button
                 type="button"
@@ -127,10 +127,13 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
       <template v-else-if="props.component === 'Checkbox'">
         <label
           class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-3 shadow transition-colors"
-          :class="value ? 'border-ring' : 'border-input'" v-bind="{ ...props.attrs }"
+          :class="value ? 'border-ring' : 'border-input'"
+          v-bind="{ ...props.attrs }"
         >
           <Checkbox
-            :id="props.name" :model-value="value" v-bind="{ disabled: props.disabled || props.readonly, readonly: props.readonly }"
+            :id="props.name"
+            :model-value="value"
+            v-bind="{ disabled: props.disabled || props.readonly, readonly: props.readonly }"
             :class="{ '!opacity-100 !cursor-default': !props.disabled && props.readonly }"
             @update:model-value="handleChange"
           />
@@ -145,7 +148,8 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
 
       <template v-else-if="props.component === 'TagsInput'">
         <TagsInput
-          v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }" :model-value="value"
+          v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+          :model-value="value"
           @update:model-value="handleChange"
         >
           <TagsInputItem v-for="item in componentField.modelValue" :key="item" :value="item">
@@ -158,7 +162,8 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
 
       <template v-else-if="props.component === 'CodeMirror'">
         <CodeMirror
-          v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }" :model-value="value"
+          v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+          :model-value="value"
           @update:model-value="handleChange"
         />
       </template>
@@ -182,6 +187,6 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
     <p v-if="props.description && props.component !== 'Checkbox'" class="text-muted-foreground text-sm mt-1.5">
       {{ props.description }}
     </p>
-    <ErrorMessage :name="props.name" class="text-destructive text-sm mt-1.5" />
+    <ErrorMessage :name="props.name" class="text-destructive-foreground text-sm mt-1.5" />
   </div>
 </template>

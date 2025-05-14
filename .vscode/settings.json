@@ -47,5 +47,11 @@
     "scss",
     "pcss",
     "postcss"
-  ]
+  ],
+
+  "rust-analyzer.linkedProjects": [
+    "apps/devu/tauri/Cargo.toml"
+  ],
+
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

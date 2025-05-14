@@ -3,25 +3,31 @@
   "type": "module",
   "version": "1.0.0-alpha.1",
   "private": true,
+  "scripts": {
+    "dev": "bun run --filter './apps/**' dev",
+    "lint": "bun run --filter '*' lint",
+    "typecheck": "bun run --filter '*' typecheck",
+    "postinstall": "husky",
+    "prepare": "bun run scripts/init/sidecar.bun.ts && bun run scripts/init/resource.api.ts"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.13.0",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/types": "^19.8.1",
+    "@types/adm-zip": "^0.5.7",
+    "@types/bun": "^1.2.13",
+    "@types/semver": "^7.7.0",
+    "adm-zip": "^0.5.16",
+    "commitlint": "^19.8.1",
+    "eslint": "^9.26.0",
+    "eslint-plugin-format": "^1.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "semver": "^7.7.2",
+    "typescript": "^5.8.3"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "scripts": {
-    "lint": "bun run --filter '*' lint",
-    "typecheck": "bun run --filter '*' typecheck",
-    "postinstall": "husky && bun run --filter 'devu' prepare"
-  },
-  "devDependencies": {
-    "@antfu/eslint-config": "^4.12.0",
-    "@commitlint/config-conventional": "^19.8.0",
-    "@commitlint/types": "^19.8.0",
-    "@types/bun": "^1.2.10",
-    "commitlint": "^19.8.0",
-    "eslint": "^9.24.0",
-    "eslint-plugin-format": "^1.0.1",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.1",
-    "typescript": "^5"
-  }
+  ]
 }
