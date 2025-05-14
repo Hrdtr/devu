@@ -1,7 +1,0 @@
-{
-  "$schema": "https://schema.tauri.app/config/2",
-  "identifier": "dev.hrdtr.devu",
-  "bundle": {
-    "targets": ["deb", "rpm"]
-  }
-}
