@@ -20,7 +20,6 @@ const { values: argv } = parseArgs({
     arch: { type: 'string', default: process.arch },
     avx2: { type: 'boolean', default: true },
     profile: { type: 'boolean', default: false },
-    targetTriple: { type: 'string' },
   },
   strict: true,
   allowPositionals: true,
@@ -30,7 +29,7 @@ const TMP_DIR = mkdirIfNotExists(resolve(join(process.cwd(), 'tmp', 'bun')))
 const BIN_TARGET_DIR = mkdirIfNotExists(resolve(join(process.cwd(), 'apps', 'devu', 'tauri', 'binaries')))
 
 // eslint-disable-next-line regexp/no-useless-flag
-const targetTriple = argv.targetTriple || /host: (\S+)/g.exec(await $`rustc -vV`.text())?.[1]
+const targetTriple = Bun.env.SIDECAR_TARGET_TRIPLE || /host: (\S+)/g.exec(await $`rustc -vV`.text())?.[1]
 if (!targetTriple) {
   throw new Error('Failed to determine platform target triple')
 }

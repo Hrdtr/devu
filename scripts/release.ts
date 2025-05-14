@@ -79,4 +79,4 @@ else {
   console.info('[dry-run] Skipping commit & push')
 }
 
-console.info('\nRelease complete.\n')
+console.info('\nRelease workflow has been started.\n')

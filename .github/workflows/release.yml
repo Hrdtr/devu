@@ -91,7 +91,7 @@ jobs:
           # The `macos-latest` runner runs on arm64 hardware, which breaks auto-detection.
           # This ensures consistent cross-compilation targeting x86_64-apple-darwin.
           # See: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-          API_BUILD_TARGET_TRIPLE: ${{ matrix.platform == 'macos-latest' && contains(matrix.args, 'x86_64-apple-darwin') && 'x86_64-apple-darwin' || '' }}
+          SIDECAR_TARGET_TRIPLE: ${{ matrix.platform == 'macos-latest' && contains(matrix.args, 'x86_64-apple-darwin') && 'x86_64-apple-darwin' || '' }}
 
       - name: patch MSI versions (Windows only)
         if: matrix.platform == 'windows-latest'
