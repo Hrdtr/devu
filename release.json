@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0-alpha.5",
+  "notes": "",
+  "pub_date": "2025-05-23T17:43:21.483Z",
+  "platforms": {
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZTJPUml4cjBNRzR1QzR3NzEvWXZxZE1JZjhjZ2V3ZHhVUTBock9hZlBpb0VFRkFEaVpuOVd1azVQSTlIODk0MXo1NkdHZ0lmT2ExeGNjK3BFY3dMdXdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4MDIwNzIxCWZpbGU6RGV2dS5hcHAudGFyLmd6CnVlWU56QlUxakhNcDk1ZVVua2svQ1NQM2M4TmlWdWRHYXB5N2JZbDRoWDZTYlQ4L0tES2tvNXdHdjh5d1VRUHp2Y3FQMHRQZG5tbDBmcnVicEQ3eENnPT0K",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_x64.app.tar.gz"
+    },
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZS9DSHNMVGhHdEVRRHlEbkd3U0QvWFd5NER4eGRGR01pc2tLaHZZK25SWGNyb0pkL0pRS2h2QkFIeERWaWNzS2d2ZHUwUERuV2c4aTNidUlXQ3pvWmdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4MDIwODg4CWZpbGU6RGV2dS5hcHAudGFyLmd6CmtzVG40WDRXQUZJWGNoQjBoK3Y3dUdKcnNvMUc2dGdNREphVWU1aVFtd1p5RWg4aDlqSHROanpiK1RSNElMbkpHb0QzU0RBQnRsRFRpMnVsRTY3OURBPT0K",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_aarch64.app.tar.gz"
+    },
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZStveTJFaDc2OE5jMjFaT05uUzI2QzdHczYxME4wQ2QwK1dKNVNiTGg2b3B4aDc1K2h4cFl2blVHbUM2bTYyd29vYk1pTDg3QW1HWkJpWlB0Z2RFZ0EwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4MDIxMTU1CWZpbGU6RGV2dV8xLjAuNV94NjRfZW4tVVMubXNpCmJEdHk0emxXZ3ZUSzVad29XbFNYY3M0b0g3S2RUQm9ZRi85Vm9kOUpIVGRsZXI2dzNsUXRyV01KK3dzNDdoRTRWRVN1NnExUm83NWhBY2IwNmkzR0F3PT0K",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_1.0.5_x64_en-US.msi"
+    },
+    "linux-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZXg4TzFrYVRxTVZxRVdYejREelZmdlJ1L1JRSVoxWjBXaVdVTnBodk1HUi90d2FqaFBQMHV2OUs3aFZMcmM2SnZoeDJMd3NSYnpnSVlTMmNTNUx0MFFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4MDIxMDEzCWZpbGU6RGV2dV8xLjAuMC1hbHBoYS41X2FtZDY0LkFwcEltYWdlCk9WNTFoNWpBN2RXWG01TldWNnZ3TG9ONDZsUXlsL2ZsdkxwZFM4U041RFpQM2h1RTVLc21YVVAwUWRqWXQ2bnVHTkM1L2E2K1psUjZtOFBmdk55TkRnPT0K",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_1.0.0-alpha.5_amd64.AppImage"
+    }
+  }
+}
