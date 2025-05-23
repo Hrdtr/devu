@@ -1,5 +1,7 @@
-import { defineRoute, srv } from '@/utils'
 import { z } from 'zod'
+import { createId, schema } from '@/database'
+import { defineRoute, srv } from '@/utils'
+import { utilityInvocationHistory } from './invocation-histories'
 import * as src from './src'
 import { MetaSchema } from './src/_shared/types'
 
@@ -29,8 +31,16 @@ function makeUtilityRoute<U extends typeof src[keyof typeof src]>(utility: U) {
           options: utility.schema.options,
         }))
         .output(utility.schema.output)
-        .handler(async ({ input: routerInput }) => {
-          return utility.invoke(routerInput.input, routerInput.options)
+        .handler(async ({ context, input: routerInput }) => {
+          const output = await utility.invoke(routerInput.input, routerInput.options)
+          await context.db.insert(schema.utilityInvocationHistory).values({
+            id: createId(),
+            utility: utility.meta.id,
+            input: routerInput.input,
+            options: routerInput.options,
+            output,
+          }).catch(() => {})
+          return output
         })),
     })
 }
@@ -44,7 +54,7 @@ function buildUtilityRoutes<T extends Record<string, typeof src[keyof typeof src
   return result
 }
 
-export const utilities = srv
+export const utility = srv
   .prefix('/utilities')
   .router({
     all: defineRoute({
@@ -53,5 +63,6 @@ export const utilities = srv
       path: '/',
       tags: ['Utility'],
     }, os => os.handler(() => Object.values(src).map(utility => utility.meta))),
+    invocationHistories: utilityInvocationHistory,
     ...buildUtilityRoutes(src),
   })

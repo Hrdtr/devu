@@ -39,25 +39,22 @@ export const useUpdater = createSharedComposable(() => {
   onMounted(check)
 
   const downloadAndInstall = async () => {
-    if (pending.value || !data.value)
+    if (pending.value || !data.value) {
       return
+    }
     pending.value = true
     await data.value.downloadAndInstall((event) => {
       switch (event.event) {
         case 'Started':
           contentLength.value = event.data.contentLength
-          console.info(
-            `[updater] Started downloading ${event.data.contentLength} bytes`,
-          )
+          console.info(`[updater] Started downloading ${event.data.contentLength} bytes`)
           break
         case 'Progress':
           if (downloaded.value === undefined) {
             downloaded.value = 0
           }
           downloaded.value += event.data.chunkLength
-          console.info(
-            `[updater] Downloaded ${downloaded} from ${contentLength}`,
-          )
+          console.info(`[updater] Downloaded ${downloaded} from ${contentLength}`)
           break
         case 'Finished':
           console.info('[updater] Download finished')

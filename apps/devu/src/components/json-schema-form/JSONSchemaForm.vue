@@ -65,12 +65,12 @@ export function fieldsFromJSONSchemaObject(objectSchema: JSONSchemaObject, field
 
 <script setup lang="ts">
 import type { PrimitiveProps } from 'reka-ui'
-import { Button } from '@/components/ui/button'
 import { toTypedSchema } from '@vee-validate/zod'
 import { Primitive } from 'reka-ui'
 import { useForm } from 'vee-validate'
 import { computed } from 'vue'
 import { convertJsonSchemaToZod } from 'zod-from-json-schema'
+import { Button } from '@/components/ui/button'
 import JSONSchemaFormField from './JSONSchemaFormField.vue'
 
 const props = withDefaults(defineProps<PrimitiveProps & {

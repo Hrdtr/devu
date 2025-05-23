@@ -1,0 +1,23 @@
+export const languages = [
+  'html',
+  'css',
+  'javascript',
+  'jsx',
+  'typescript',
+  'yaml',
+  'json',
+  'markdown',
+  'python',
+  'go',
+  'rust',
+  'cpp',
+  'csharp',
+  'java',
+  'php',
+  'perl',
+  'ruby',
+  'lua',
+  'julia',
+  'gleam',
+] as const
+export type Language = typeof languages[number]

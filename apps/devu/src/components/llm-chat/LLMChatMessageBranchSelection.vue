@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { useLLMChatMessages } from '@/composables/use-llm-chat-messages'
-import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   chatId: string

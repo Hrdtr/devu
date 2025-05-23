@@ -1,10 +1,10 @@
 import type { Extension, PGliteInterfaceExtensions } from '@electric-sql/pglite'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { config } from '@/config'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite/vector'
 import { drizzle } from 'drizzle-orm/pglite'
+import { config } from '@/config'
 import * as schema from './schema'
 
 /* eslint-disable perfectionist/sort-imports, antfu/no-import-node-modules-by-path, antfu/no-import-dist */
@@ -51,30 +51,54 @@ function resolveAssetPath(path: string) {
   return path
 }
 
-export async function createClient(dataDir: string) {
-  mkdirSync(dataDir, { recursive: true })
-  const fsBundle = Bun.file(resolveAssetPath(PGLiteFSBundle))
-  const wasm = Bun.file(resolveAssetPath(PGLiteWasm))
+let client: PGliteClient | undefined
+let clientPromise: Promise<PGliteClient> | undefined
 
-  const client = await PGlite.create(dataDir, {
-    fsBundle,
-    wasmModule: await WebAssembly.compile(await wasm.arrayBuffer()),
-    extensions: {
-      // Modified version of @electric-sql/pglite/vector to work with custom bundlePath url
-      // Source: https://github.com/electric-sql/pglite/blob/71707ff970508fa1f8db6ed1d170f31194bf89e6/packages/pglite/src/vector/index.ts
-      vector: {
-        ...vector,
-        setup: async (_pg, emscriptenOpts) => {
-          return {
-            emscriptenOpts,
-            bundlePath: pathToFileURL(resolveAssetPath(PGLiteVectorExtension)),
-          }
+export async function createClient(dataDir: string) {
+  if (client) {
+    return Promise.resolve(client)
+  };
+  if (clientPromise) {
+    return clientPromise
+  };
+
+  clientPromise = (async () => {
+    try {
+      mkdirSync(dataDir, { recursive: true })
+      const fsBundle = Bun.file(resolveAssetPath(PGLiteFSBundle))
+      const wasm = Bun.file(resolveAssetPath(PGLiteWasm))
+
+      const pgliteClient = await PGlite.create(dataDir, {
+        // debug: 5,
+        fsBundle,
+        wasmModule: await WebAssembly.compile(await wasm.arrayBuffer()),
+        extensions: {
+          // Modified version of @electric-sql/pglite/vector to work with custom bundlePath url
+          // Source: https://github.com/electric-sql/pglite/blob/71707ff970508fa1f8db6ed1d170f31194bf89e6/packages/pglite/src/vector/index.ts
+          vector: {
+            ...vector,
+            setup: async (_pg, emscriptenOpts) => {
+              return {
+                emscriptenOpts,
+                bundlePath: pathToFileURL(resolveAssetPath(PGLiteVectorExtension)),
+              }
+            },
+          } satisfies Extension,
         },
-      } satisfies Extension,
-    },
-  })
-  await client.waitReady // Needed, otherwise the drizzle migrate command will fail
-  return client
+      })
+
+      await pgliteClient.waitReady // Needed, otherwise the drizzle migrate command will fail
+      client = pgliteClient
+
+      return client
+    }
+    catch (err) {
+      clientPromise = undefined // allow retry on next call
+      throw err
+    }
+  })()
+
+  return clientPromise
 }
 
 export function useDatabase(client: PGliteClient) {

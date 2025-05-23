@@ -4,7 +4,8 @@ import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 
 // GitHub Dark theme color definitions
-const base00 = 'var(--background)' // Background
+// const base00 = 'var(--background)' // Background
+const base00 = 'color-mix(in oklab, var(--input) 30%, transparent)' // Background
 const base01 = 'var(--foreground)' // Foreground
 const base02 = '#003d73' // Selection and Selection Match
 const base03 = '#8b949e' // Comment and Bracket color
@@ -19,10 +20,9 @@ const base0B = '#ffeef0' // Deleted background color
 const base0C = '#ffab70' // Atom, Bool, Special VariableName
 const invalid = '#f97583' // Invalid color
 
-const highlightBackground
-    = 'color-mix(in oklab, var(--foreground) 5%, transparent)' // Line highlight with some opacity
-const tooltipBackground = '--var(--card)'
-const tooltipColor = '--var(--card-foreground)'
+const highlightBackground = 'color-mix(in oklab, var(--foreground) 2.5%, transparent)' // Line highlight with some opacity
+const tooltipBackground = 'var(--card)'
+const tooltipColor = 'var(--card-foreground)'
 const cursor = base04 // Caret color
 const selection = base02 // Selection color
 
@@ -36,6 +36,7 @@ export const theme = EditorView.theme(
     '.cm-content': {
       caretColor: cursor,
       fontSize: 'calc(var(--root-font-size, 16px) - 2px)',
+      lineHeight: 'calc(var(--root-font-size, 16px) + 6px)',
     },
     '.cm-cursor, .cm-dropCursor': {
       borderLeftColor: cursor,
@@ -68,9 +69,15 @@ export const theme = EditorView.theme(
       backgroundColor: highlightBackground,
     },
     '.cm-gutters': {
-      backgroundColor: base00, // Gutter background using the main background
+      backgroundColor: 'var(--background)', // Gutter background using the main background
       color: base03, // Use comment color for gutter foreground
       fontSize: 'calc(var(--root-font-size, 16px) - 2px)',
+    },
+    '.cm-gutterElement': {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'end',
+      alignItems: 'center',
     },
     '.cm-activeLineGutter': {
       backgroundColor: highlightBackground,
@@ -78,6 +85,10 @@ export const theme = EditorView.theme(
     '.cm-tooltip': {
       backgroundColor: tooltipBackground,
       color: tooltipColor,
+    },
+    '.cm-foldPlaceholder': {
+      backgroundColor: 'transparent',
+      borderColor: 'transparent',
     },
   },
   { dark: true },

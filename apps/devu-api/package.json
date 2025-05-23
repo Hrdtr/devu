@@ -10,6 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "postinstall": "bun run db:generate && bun build:types",
+    "prepare:livecodes": "bun run scripts/download-livecodes-static.ts",
     "db:generate": "drizzle-kit generate"
   },
   "devDependencies": {

@@ -1,24 +1,30 @@
 <script setup lang="ts">
 import type { ApiRouteOutput } from '@/composables/use-api'
+import { ArrowRight, History } from 'lucide-vue-next'
+import { onActivated, onDeactivated, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { toast } from 'vue-sonner'
 import { JSONSchemaForm } from '@/components/json-schema-form'
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '@/components/responsive-dialog'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { UtilityOutput } from '@/components/utility-output'
+import { UtilityInvocationHistories, UtilityOutput } from '@/components/utility'
 import { useApi } from '@/composables/use-api'
 import { useMainElementRef } from '@/composables/use-main-element-ref'
 import { usePageMeta } from '@/composables/use-page-meta'
-import { ArrowRight } from 'lucide-vue-next'
-import { onActivated, onMounted, ref, useTemplateRef } from 'vue'
-import { useRoute } from 'vue-router'
-import { toast } from 'vue-sonner'
 
 const route = useRoute()
 const mainElementRef = useMainElementRef()
 
-const { $fetch } = useApi()
+const activated = ref(false)
+onActivated(() => (activated.value = true))
+onDeactivated(() => (activated.value = false))
+watch(() => route.fullPath, () => (activated.value = false))
+
+const { $fetch, client, safe } = useApi()
 const { title } = usePageMeta()
 
-const meta = ref<null | undefined | ApiRouteOutput['utilities']['all'][number]>(null)
+const meta = ref<null | undefined | ApiRouteOutput['utility']['all'][number]>(null)
 onMounted(async () => {
   meta.value = await $fetch(`/utilities/${route.params.id}`).then(response => response.json())
   title.value = meta.value ? `Utility: ${meta.value.name}` : undefined
@@ -67,10 +73,61 @@ async function submit() {
     }
   }
 }
+
+const historyDialogVisible = ref(false)
+const histories = ref<ApiRouteOutput['utility']['invocationHistories']['list']>()
+async function fetchInvocationHistories() {
+  const { data, error } = await safe(client.utility.invocationHistories.list({ utility: String(route.params.id) }))
+  if (error) {
+    toast.error(error?.message || String(error))
+    return
+  }
+  histories.value = data
+}
+onMounted(fetchInvocationHistories)
 </script>
 
 <template>
   <div v-if="meta" class="p-4 grid grid-cols-1 @3xl:grid-cols-2 gap-4">
+    <Teleport v-if="activated" to="#header-end">
+      <div class="shrink-0 flex flex-row items-center justify-end gap-2 -mr-2">
+        <ResponsiveDialog v-model:open="historyDialogVisible">
+          <ResponsiveDialogTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="w-8 h-8"
+            >
+              <History />
+              <span class="sr-only">Invocation Histories</span>
+            </Button>
+          </ResponsiveDialogTrigger>
+          <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle>Invocation Histories</ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
+                Here are the invocation histories for this utility.
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
+
+            <div class="flex flex-col overflow-y-auto">
+              <UtilityInvocationHistories
+                :utility="String(route.params.id)"
+                @restore="(value) => {
+                  inputRef?.setValue(value.input)
+                  if (value.options) {
+                    optionsRef?.setValue(value.options)
+                  }
+                  outputRef?.setValue(value.output)
+                  historyDialogVisible = false
+                }"
+              />
+            </div>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </div>
+    </Teleport>
+
     <form class="@container" @submit.prevent="submit">
       <JSONSchemaForm
         ref="input"
@@ -78,7 +135,7 @@ async function submit() {
         :schema="meta.schema.input"
         class="[&_button[type=submit]]:hidden"
       />
-      <Separator v-if="meta.schema.options" class="my-4" />
+      <Separator v-if="meta.schema.options && meta.schema.options.type !== 'null'" class="my-4" />
       <JSONSchemaForm
         v-if="meta.schema.options && meta.schema.options.type !== 'null'"
         ref="options"

@@ -1,8 +1,7 @@
-use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
-use tauri_plugin_shell::process::CommandEvent;
+use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tokio::time::sleep;
 
@@ -10,6 +9,7 @@ use tokio::time::sleep;
 struct ServiceManager {
     port: Option<u16>,
     is_running: bool,
+    child_process: Option<CommandChild>,
 }
 
 impl ServiceManager {
@@ -17,7 +17,22 @@ impl ServiceManager {
         ServiceManager {
             port: None,
             is_running: false,
+            child_process: None,
         }
+    }
+
+    // Kill the current process if it exists
+    fn kill_process(&mut self) {
+        if let Some(child) = self.child_process.take() {
+            println!("Terminating existing API service process...");
+            if let Err(e) = child.kill() {
+                eprintln!("Failed to kill API service process: {}", e);
+            } else {
+                println!("API service process terminated successfully.");
+            }
+        }
+        self.is_running = false;
+        self.port = None;
     }
 }
 
@@ -25,7 +40,16 @@ impl ServiceManager {
 struct APIServiceState(Arc<Mutex<ServiceManager>>);
 
 // Start the API server and return the port it's running on
-async fn start_api_service(app: AppHandle) -> Result<u16, String> {
+async fn start_api_service(
+    app: AppHandle,
+    api_service_state: Arc<Mutex<ServiceManager>>,
+) -> Result<u16, String> {
+    // First, ensure no existing process is running
+    {
+        let mut manager = api_service_state.lock().unwrap();
+        manager.kill_process();
+    }
+
     let resources_path = app
         .path()
         .resolve("resources/api", BaseDirectory::Resource)
@@ -56,7 +80,14 @@ async fn start_api_service(app: AppHandle) -> Result<u16, String> {
         ]);
 
     match command.spawn() {
-        Ok((mut rx, _child)) => {
+        Ok((mut rx, child)) => {
+            // Store the child process for later cleanup
+            {
+                let mut manager = api_service_state.lock().unwrap();
+                manager.child_process = Some(child);
+            }
+            // Clone the state for the output handling task
+            let api_state_clone = api_service_state.clone();
             // Spawn a task to handle the API service's output
             tauri::async_runtime::spawn(async move {
                 while let Some(event) = rx.recv().await {
@@ -71,9 +102,19 @@ async fn start_api_service(app: AppHandle) -> Result<u16, String> {
                         },
                         CommandEvent::Error(err) => {
                             eprint!("[API::error] {:?}", err);
+                            // Mark as not running when there's an error
+                            let mut manager = api_state_clone.lock().unwrap();
+                            manager.is_running = false;
+                            manager.port = None;
+                            manager.child_process = None;
                         }
                         CommandEvent::Terminated(payload) => {
                             print!("[API::terminated] Exit code: {:?}", payload.code);
+                            // Mark as not running when terminated
+                            let mut manager = api_state_clone.lock().unwrap();
+                            manager.is_running = false;
+                            manager.port = None;
+                            manager.child_process = None;
                         }
                         _ => {}
                     }
@@ -104,7 +145,7 @@ async fn manage_api_service_lifecycle(
         if !is_running {
             // If not running, attempt to start it
             println!("API service is not running, attempting to start...");
-            match start_api_service(app.clone()).await {
+            match start_api_service(app.clone(), api_service_state.clone()).await {
                 Ok(port) => {
                     // Update state on successful start
                     {
@@ -126,7 +167,8 @@ async fn manage_api_service_lifecycle(
                     {
                         let mut manager = api_service_state.lock().unwrap();
                         manager.is_running = false;
-                        manager.port = None; // Clear the old port
+                        manager.port = None;
+                        manager.child_process = None;
                     }
 
                     // Emit error event
@@ -183,7 +225,8 @@ async fn api_service_health_check_loop(api_service_state: Arc<Mutex<ServiceManag
                 let mut manager = api_service_state.lock().unwrap();
                 manager.is_running = false; // This will trigger the lifecycle manager to restart
                 manager.port = None; // Clear the old port
-                                     // The manage_api_service_lifecycle task will detect this state change and attempt a restart.
+                manager.child_process = None; // Clear the process handle
+                                              // The manage_api_service_lifecycle task will detect this state change and attempt a restart.
             }
         }
     }
@@ -192,20 +235,76 @@ async fn api_service_health_check_loop(api_service_state: Arc<Mutex<ServiceManag
 // Helper function to get an available port
 fn get_available_port() -> Option<u16> {
     // Start searching from a higher range to avoid common ports
-    (49152..65535).find(|port| port_is_available(*port))
+    // Use a wider range and skip commonly problematic ports
+    for port in 49152..65535 {
+        // Skip ports that are commonly used or reserved
+        if is_commonly_used_port(port) {
+            continue;
+        }
+
+        if port_is_available(port) {
+            return Some(port);
+        }
+    }
+    None
+}
+
+// Helper function to check if a port is commonly used or should be avoided
+fn is_commonly_used_port(port: u16) -> bool {
+    match port {
+        // Windows dynamic/ephemeral port range (varies by Windows version)
+        49152..=65535 => {
+            // For Windows 10/11, be more selective within this range
+            // Skip the first few hundred ports which are most commonly used
+            match port {
+                49152..=49500 => true, // Most commonly allocated dynamic ports
+                _ => false,
+            }
+        }
+        _ => false,
+    }
 }
 
 // Helper function to check if a port is available
 fn port_is_available(port: u16) -> bool {
-    // Binding to 127.0.0.1 checks availability on the local loopback interface
-    match TcpListener::bind(("127.0.0.1", port)) {
+    use std::net::{TcpListener, UdpSocket};
+    use std::time::Duration;
+
+    // Check TCP port availability
+    let tcp_available = match TcpListener::bind(("127.0.0.1", port)) {
         Ok(listener) => {
-            // Drop the listener immediately to free the port
+            // Set SO_REUSEADDR to avoid TIME_WAIT issues
+            if let Err(_) = listener.set_nonblocking(true) {
+                return false;
+            }
             drop(listener);
+
+            // Double-check by trying to connect
+            match std::net::TcpStream::connect_timeout(
+                &format!("127.0.0.1:{}", port).parse().unwrap(),
+                Duration::from_millis(100),
+            ) {
+                Ok(_) => false, // Connection succeeded, port is in use
+                Err(_) => true, // Connection failed, port is available
+            }
+        }
+        Err(_) => false,
+    };
+
+    if !tcp_available {
+        return false;
+    }
+
+    // Also check UDP port availability to be thorough
+    let udp_available = match UdpSocket::bind(("127.0.0.1", port)) {
+        Ok(socket) => {
+            drop(socket);
             true
         }
         Err(_) => false,
-    }
+    };
+
+    tcp_available && udp_available
 }
 
 // Command to manually request the current API service port
@@ -219,12 +318,35 @@ fn get_api_service_port(state: State<'_, APIServiceState>) -> Result<String, Str
     }
 }
 
+// Command to manually stop the API service
+#[tauri::command]
+fn stop_api_service(state: State<'_, APIServiceState>) -> Result<String, String> {
+    let mut manager = state.0.lock().unwrap();
+    if manager.is_running {
+        manager.kill_process();
+        Ok("API service stopped successfully".to_string())
+    } else {
+        Err("API service is not running".to_string())
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Initialize the shared state for the service manager
     let api_service_state = Arc::new(Mutex::new(ServiceManager::new()));
 
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default();
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            let _ = app
+                .get_webview_window("main")
+                .expect("no main window")
+                .set_focus();
+        }));
+    }
+
+    builder
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
@@ -256,8 +378,21 @@ pub fn run() {
 
             Ok(())
         })
-        // Register the command to get the API service port from the frontend
-        .invoke_handler(tauri::generate_handler![get_api_service_port])
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                // Clean up API service when window is closing
+                if let Some(state) = window.try_state::<APIServiceState>() {
+                    let mut manager = state.0.lock().unwrap();
+                    manager.kill_process();
+                    println!("API service cleaned up on window close.");
+                }
+            }
+        })
+        // Register the command to stop & get the API service port from the frontend
+        .invoke_handler(tauri::generate_handler![
+            get_api_service_port,
+            stop_api_service
+        ])
         .run(tauri::generate_context!())
         .expect("error while running application");
 }

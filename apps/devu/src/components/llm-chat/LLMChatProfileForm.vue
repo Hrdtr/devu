@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { ErrorMessage, Field, useForm } from 'vee-validate'
+import { computed, ref, watch } from 'vue'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useLLMChatProfile } from '@/composables/use-llm-chat-profile'
-import { toTypedSchema } from '@vee-validate/zod'
-import { ErrorMessage, Field, useForm } from 'vee-validate'
-import { computed, ref, watch } from 'vue'
-import { z } from 'zod'
 
 const props = defineProps<{
   update?: typeof _profiles.value[number]
@@ -109,7 +109,7 @@ const submit = handleSubmit(async (formValues) => {
     <div class="mb-4">
       <Field v-slot="{ componentField }" name="name">
         <Label for="name" class="mb-2">Name</Label>
-        <Input id="name" v-bind="{ ...componentField, disabled: isSubmitting }" />
+        <Input id="name" v-bind="{ ...componentField, disabled: isSubmitting }" autocorrect="off" />
         <p class="text-muted-foreground text-sm mt-1.5">
           This name will be used to identify this profile.
         </p>
@@ -123,7 +123,7 @@ const submit = handleSubmit(async (formValues) => {
           v-if="provider === 'openai'"
           class="text-muted-foreground"
         >(Optional)</span></Label>
-        <Input id="configuration.baseUrl" v-bind="{ ...componentField, disabled: isSubmitting }" />
+        <Input id="configuration.baseUrl" v-bind="{ ...componentField, disabled: isSubmitting }" autocorrect="off" />
         <p class="text-muted-foreground text-sm mt-1.5">
           Provider-specific API endpoint base URL.
           {{ provider === 'openai' ? ' Enter a URL here to connect with OpenAI-compatible providers not listed.' : '' }}
@@ -135,7 +135,7 @@ const submit = handleSubmit(async (formValues) => {
     <div v-if="provider !== 'ollama'" class="mb-4">
       <Field v-slot="{ componentField }" name="credentials.apiKey">
         <Label for="credentials.apiKey" class="mb-2">API Key</Label>
-        <Input id="credentials.apiKey" v-bind="{ ...componentField, disabled: isSubmitting, type: 'password' }" />
+        <Input id="credentials.apiKey" v-bind="{ ...componentField, disabled: isSubmitting, type: 'password' }" autocorrect="off" />
         <p class="text-muted-foreground text-sm mt-1.5">
           Provider-specific API Key to be used in every requests.
         </p>
@@ -146,7 +146,7 @@ const submit = handleSubmit(async (formValues) => {
     <div class="mb-4">
       <Field v-slot="{ componentField }" name="model">
         <Label for="model" class="mb-2">Model</Label>
-        <Input id="model" v-bind="{ ...componentField, disabled: isSubmitting }" />
+        <Input id="model" v-bind="{ ...componentField, disabled: isSubmitting }" autocorrect="off" />
         <p class="text-muted-foreground text-sm mt-1.5">
           Provider-specific model id to use.
         </p>

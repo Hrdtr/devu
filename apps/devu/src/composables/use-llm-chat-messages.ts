@@ -1,13 +1,14 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { ApiRouteOutput } from './use-api'
 import { useLocalStorage } from '@vueuse/core'
-import { computed, onMounted, readonly, ref, watch } from 'vue'
+import { computed, onMounted, readonly, ref, toValue, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 import { useLLMChat } from './use-llm-chat'
 
 type AsyncYielded<T> = T extends AsyncIterable<infer U> ? U : never
 export function useLLMChatMessages(
-  chatId: string,
+  chatId: MaybeRefOrGetter<string>,
   {
     onEventReceived,
   }: {
@@ -31,7 +32,7 @@ export function useLLMChatMessages(
     if (messageState.value !== 'idle') {
       return
     }
-    updateChat(chatId, { activeBranches: value })
+    updateChat(toValue(chatId), { activeBranches: value })
   }, { deep: true })
 
   const loadMessages = async (untilId?: number | string) => {
@@ -40,7 +41,7 @@ export function useLLMChatMessages(
     }
     messageState.value = 'loading'
     const { data, error } = await safe(client.llmChat.message.list({
-      chatId,
+      chatId: toValue(chatId),
       branch: branch.value,
       limit: typeof untilId === 'number' ? untilId : undefined,
       untilId: typeof untilId === 'string' ? untilId : undefined,
@@ -72,7 +73,7 @@ export function useLLMChatMessages(
     messageState.value = 'loadingMore'
     const nextCursor = messages.value.nextCursor
     const { data, error } = await safe(client.llmChat.message.list({
-      chatId,
+      chatId: toValue(chatId),
       branch: branch.value,
       cursor: nextCursor,
     }))
@@ -115,7 +116,7 @@ export function useLLMChatMessages(
 
     const abortController = new AbortController()
     const response = await client.llmChat.message.create({
-      chatId,
+      chatId: toValue(chatId),
       content,
       profileId: profile.id,
       parentId: messages.value.data[messages.value.data.length - 1]?.id || null,
@@ -153,7 +154,7 @@ export function useLLMChatMessages(
             }
           }
           else if (event.action === 'set_chat_title') {
-            await updateChat(chatId, { title: event.data })
+            await updateChat(toValue(chatId), { title: event.data })
           }
         }
       }
@@ -312,8 +313,8 @@ export function useLLMChatMessages(
   const initialChatPayload = useLocalStorage('initialChatPayload', '')
   onMounted(async () => {
     // Prevent refresh the reactive messages array on initial chat
-    if (!initialChatPayload.value && chatId !== 'new') {
-      const { data, error } = await safe(client.llmChat.retrieve({ id: chatId }))
+    if (!initialChatPayload.value && toValue(chatId) !== 'new') {
+      const { data, error } = await safe(client.llmChat.retrieve({ id: toValue(chatId) }))
       if (error) {
         toast.error(error?.message || String(error))
         return

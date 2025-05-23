@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { useClipboardItems } from '@vueuse/core'
+import { Check, Clipboard, Copy } from 'lucide-vue-next'
+import { ErrorMessage, Field } from 'vee-validate'
+import { ref } from 'vue'
+import { toast } from 'vue-sonner'
 import { CodeMirror } from '@/components/code-mirror'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -7,11 +12,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input'
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useClipboardItems } from '@vueuse/core'
-import { Check, Clipboard, Copy } from 'lucide-vue-next'
-import { ErrorMessage, Field } from 'vee-validate'
-import { ref } from 'vue'
-import { toast } from 'vue-sonner'
 
 const props = defineProps<{
   name: string
@@ -169,11 +169,11 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
       </template>
 
       <template v-else-if="props.component === 'Textarea'">
-        <Textarea v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }" />
+        <Textarea v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }" autocorrect="off" />
       </template>
 
       <template v-else-if="props.component === 'Input'">
-        <Input v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }" />
+        <Input v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }" autocorrect="off" />
       </template>
 
       <template v-else>

@@ -4,9 +4,11 @@ import type { Diagnostic, LintSource } from '@codemirror/lint'
 import type { Extension, SelectionRange, Text, Transaction } from '@codemirror/state'
 import type { ViewUpdate } from '@codemirror/view'
 import type { StyleSpec } from 'style-mod'
+import type { Language } from './languages'
+import { StreamLanguage } from '@codemirror/language'
 import { Compartment, EditorSelection, EditorState, StateEffect } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
-import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, useSlots, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, shallowRef, useSlots, useTemplateRef, watch } from 'vue'
 
 const props = defineProps<{
   modelValue?: string
@@ -238,7 +240,14 @@ async function loadBasicSetupExtensions(options: { defaultKeymap: boolean }) {
     highlightActiveLineGutter(),
     highlightSpecialChars(),
     history(),
-    foldGutter(),
+    foldGutter({
+      markerDOM: (open) => {
+        const icon = document.createElement('span')
+        icon.className = 'size-4 opacity-75 hover:opacity-100'
+        icon.innerHTML = open ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down size-full"><path d="m6 9 6 6 6-6"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right size-full"><path d="m9 18 6-6-6-6"/></svg>'
+        return icon
+      },
+    }),
     drawSelection(),
     dropCursor(),
     EditorState.allowMultipleSelections.of(true),
@@ -276,10 +285,25 @@ async function loadExtensions() {
       html: () => import('@codemirror/lang-html').then(m => m.html()),
       css: () => import('@codemirror/lang-css').then(m => m.css()),
       javascript: () => import('@codemirror/lang-javascript').then(m => m.javascript()),
+      jsx: () => import('@codemirror/lang-javascript').then(m => m.javascript({ jsx: true })),
+      typescript: () => import('@codemirror/lang-javascript').then(m => m.javascript({ typescript: true })),
       yaml: () => import('@codemirror/lang-yaml').then(m => m.yaml()),
       json: () => import('@codemirror/lang-json').then(m => m.json()),
       markdown: () => import('@codemirror/lang-markdown').then(m => m.markdown()),
-    }
+      python: () => import('@codemirror/lang-python').then(m => m.python()),
+      go: () => import('@codemirror/lang-go').then(m => m.go()),
+      rust: () => import('@codemirror/lang-rust').then(m => m.rust()),
+      cpp: () => import('@codemirror/lang-cpp').then(m => m.cpp()),
+      csharp: () => import('@codemirror/legacy-modes/mode/clike').then(m => StreamLanguage.define(m.csharp) as unknown as LanguageSupport),
+      java: () => import('@codemirror/lang-java').then(m => m.java()),
+      php: () => import('@codemirror/lang-php').then(m => m.php()),
+      perl: () => import('codemirror-lang-perl').then(m => m.perl()),
+      ruby: () => import('@codemirror/legacy-modes/mode/ruby').then(m => StreamLanguage.define(m.ruby) as unknown as LanguageSupport),
+      lua: () => import('@codemirror/legacy-modes/mode/lua').then(m => StreamLanguage.define(m.lua) as unknown as LanguageSupport),
+      julia: () => import('@codemirror/legacy-modes/mode/julia').then(m => StreamLanguage.define(m.julia) as unknown as LanguageSupport),
+      // @ts-expect-error unresolved type
+      gleam: () => import('@exercism/codemirror-lang-gleam').then(m => m.gleam()),
+    } satisfies Record<Language, () => Promise<LanguageSupport>>
     return cmLanguageImportMap[lang as keyof typeof cmLanguageImportMap]?.()
   }
 
@@ -367,7 +391,7 @@ async function loadExtensions() {
   return extensions
 }
 
-watch(() => props.extensions, async () => {
+watch([() => props.extensions, () => props.lang], async () => {
   const exts = await loadExtensions()
   view.value?.dispatch({ effects: StateEffect.reconfigure.of(exts) })
 }, { immediate: true })
@@ -394,23 +418,25 @@ watch(() => props.modelValue, async (value) => {
 }, { immediate: true })
 
 /** When loaded */
-onMounted(async () => {
-  if (!editor.value)
+watch(editor, async (container) => {
+  if (!container) {
     return
+  }
+
   /** Initial value */
   let value: string | Text = doc.value
-  if (slots.default && editor.value.childNodes[0]) {
+  if (slots.default && container.childNodes[0]) {
     // when slot mode, overwrite initial value
     if (doc.value !== '') {
       console.warn('[CodeMirror.vue] The <code-mirror> tag contains child elements that overwrite the `v-model` values.')
     }
-    value = (editor.value.childNodes[0] as HTMLElement).textContent?.trim() || ''
+    value = (container.childNodes[0] as HTMLElement).textContent?.trim() || ''
   }
 
   const extensions = await loadExtensions()
   // Register Codemirror
   view.value = new EditorView({
-    parent: editor.value,
+    parent: container,
     state: EditorState.create({ doc: value, extensions }),
     dispatch: (tr: Transaction) => {
       view.value?.update([tr])
@@ -431,7 +457,7 @@ onMounted(async () => {
   emit('ready', {
     view: view.value,
     state: view.value.state,
-    container: editor.value,
+    container,
   })
 })
 
@@ -609,6 +635,7 @@ const minHeight = computed(() => editor.value?.style.minHeight ? `${editor.value
       focus ? 'border-ring ring-ring/50 ring-[3px]' : '',
       props.readonly ? '[&_.cm-cursor]:!hidden' : '',
     ]"
+    @click="focus = true"
   >
     <aside v-if="slots.default" style="display: none;" aria-hidden="true">
       <slot />
@@ -617,8 +644,7 @@ const minHeight = computed(() => editor.value?.style.minHeight ? `${editor.value
 </template>
 
 <style scoped>
-.cm-wrapper :deep(.cm-content),
-.cm-wrapper :deep(.cm-gutters) {
+.cm-wrapper :deep(.cm-content) {
   min-height: v-bind(minHeight) !important;
 }
 </style>

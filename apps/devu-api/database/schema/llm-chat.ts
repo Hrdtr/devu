@@ -15,6 +15,7 @@ export const llmChatProfile = pgTable('llm_chat_profile', {
   additionalSystemPrompt: text('additional_system_prompt'),
 }, table => [
   index('llm_chat_profile_created_at_idx').on(table.createdAt),
+  index('llm_chat_profile_last_updated_at_idx').on(table.lastUpdatedAt),
   index('llm_chat_profile_name_idx').on(table.name),
   index('llm_chat_profile_provider_idx').on(table.provider),
 ])
@@ -29,6 +30,7 @@ export const llmChat = pgTable('llm_chat', {
   activeBranches: text('active_branches').array().notNull().default([]),
 }, table => [
   index('llm_chat_created_at_idx').on(table.createdAt),
+  index('llm_chat_last_updated_at_idx').on(table.lastUpdatedAt),
   index('llm_chat_title_idx').on(table.title),
   index('llm_chat_root_message_id_idx').on(table.rootMessageId),
 ])

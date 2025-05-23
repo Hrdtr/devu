@@ -155,3 +155,7 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-accent; /* You can adjust this color for the hover state */
 }
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -20,6 +20,8 @@ const OUTPUT_DIR = mkdirIfNotExists(resolve(join(process.cwd(), 'apps', 'devu', 
 await $`bun build --target bun --outdir ${OUTPUT_DIR} --minify index.ts`.cwd(SOURCE_DIR)
 mkdirIfNotExists(join(OUTPUT_DIR, 'database', 'migrations'))
 cpSync(join(SOURCE_DIR, 'database', 'migrations'), join(OUTPUT_DIR, 'database', 'migrations'), { recursive: true })
+mkdirIfNotExists(join(OUTPUT_DIR, 'static'))
+cpSync(join(SOURCE_DIR, 'static'), join(OUTPUT_DIR, 'static'), { recursive: true })
 
 function mkdirIfNotExists(dir: string) {
   try {

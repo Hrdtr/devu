@@ -1,13 +1,21 @@
 <script lang="ts" setup>
 import { DialogHeader } from '@/components/ui/dialog'
-import { DrawerHeader } from '@/components/ui/drawer'
-import { useMediaQuery } from '@vueuse/core'
+import { cn } from '@/utils'
+// import { DrawerHeader } from '@/components/ui/drawer'
+// import { useMediaQuery } from '@vueuse/core'
 
-const isDesktop = useMediaQuery('(min-width: 768px)')
+// const isDesktop = useMediaQuery('(min-width: 768px)')
 </script>
 
 <template>
-  <DialogHeader v-if="isDesktop" v-slot="slotProps" v-bind="{ ...$attrs }">
+  <DialogHeader
+    v-slot="slotProps"
+    v-bind="{ ...$attrs, class: undefined }"
+    :class="cn('text-left', ($attrs.class ?? ''))"
+  >
+    <slot v-bind="slotProps" />
+  </DialogHeader>
+  <!-- <DialogHeader v-if="isDesktop" v-slot="slotProps" v-bind="{ ...$attrs }">
     <slot v-bind="slotProps" />
   </DialogHeader>
   <DrawerHeader
@@ -17,5 +25,5 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
     v-bind="{ ...$attrs }"
   >
     <slot v-bind="slotProps" />
-  </DrawerHeader>
+  </DrawerHeader> -->
 </template>

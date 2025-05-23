@@ -19,7 +19,7 @@ const client = await createClient(join(config.appDataDir, 'data'))
 const db = useDatabase(client)
 
 console.info('Running database migrations...')
-await migrate(db, {
+migrate(db, {
   migrationsFolder: resolve(join(dirname(fileURLToPath(import.meta.url)), 'database', 'migrations')),
 })
 
@@ -119,6 +119,23 @@ Bun.serve({
       }
 
       return new Response('Not Found', { status: 404 })
+    }
+
+    // This isn't really used rn. We need to wait for full offline support of LiveCodes
+    // See: https://github.com/live-codes/livecodes/issues/807
+    else if (pathname.startsWith('/livecodes')) {
+      const path = resolve(join(dirname(fileURLToPath(import.meta.url)), 'static', ...pathname.split('/')))
+      try {
+        const file = Bun.file(path)
+        if (await file.exists()) {
+          return new Response(file)
+        }
+
+        return Response.redirect('/livecodes/index.html', 302)
+      }
+      catch {
+        return new Response('Not found', { status: 404 })
+      }
     }
 
     return new Response('Not Found', { status: 404 })
