@@ -1,16 +1,31 @@
-# Tauri + Vue + TypeScript
+# Devu Client Application
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This directory contains the client-side application for Devu, built with Vue.js and Tauri. It provides the user interface and interacts with the `devu-api` backend.
 
-## Recommended IDE Setup
+## Development
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+To run the Devu client application in development mode:
 
-## Type Support For `.vue` Imports in TS
+1.  Ensure the `devu-api` is running. If not, navigate to the `apps/devu-api` directory and run `bun install` followed by `bun run dev`.
+2.  Navigate to this directory (`apps/devu`).
+3.  Install the dependencies:
+    ```bash
+    bun install
+    ```
+4.  Start the development server:
+    ```bash
+    bun run dev
+    ```
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's Take Over mode by following these steps:
+This will launch the Devu desktop application.
 
-1. Run `Extensions: Show Built-in Extensions` from VS Code's command palette, look for `TypeScript and JavaScript Language Features`, then right click and select `Disable (Workspace)`. By default, Take Over mode will enable itself if the default TypeScript extension is disabled.
-2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
+## Linting and Type Checking
 
-You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
+- **Lint:**
+  ```bash
+  bun run lint
+  ```
+- **Type Check:**
+  ```bash
+  bun run typecheck
+  ```

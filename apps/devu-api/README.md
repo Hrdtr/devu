@@ -1,15 +1,30 @@
-# devu-api
+# Devu API
 
-To install dependencies:
+This directory contains the backend API for the Devu application. It handles data storage, LLM integrations, provides various utility functions, etc.
 
-```bash
-bun install
-```
+## Development
 
-To run:
+To run the Devu API in development mode:
 
-```bash
-bun run index.ts
-```
+1.  Navigate to this directory (`apps/devu-api`).
+2.  Install the dependencies:
+    ```bash
+    bun install
+    ```
+3.  Start the development server:
+    ```bash
+    bun run dev
+    ```
 
-This project was created using `bun init` in bun v1.2.11. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+The API will be accessible at `http://localhost:3000` (or the port configured).
+
+## Linting and Type Checking
+
+- **Lint:**
+  ```bash
+  bun run lint
+  ```
+- **Type Check:**
+  ```bash
+  bun run typecheck
+  ```
