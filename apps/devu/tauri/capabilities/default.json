@@ -15,7 +15,7 @@
       "identifier": "shell:allow-spawn",
       "allow": [
         {
-          "name": "binaries/bun",
+          "name": "binaries/devu-bun",
           "sidecar": true
         }
       ]

@@ -50,33 +50,46 @@ async fn start_api_service(
         manager.kill_process();
     }
 
-    let resources_path = app
+    let resources_path_buf = app
         .path()
         .resolve("resources/api", BaseDirectory::Resource)
         .expect("Failed to resolve API resources");
+    // Convert to a string and apply `dunce::canonicalize`, or use it directly on the PathBuf if supported.
+    // Without canonicalization, Windows paths may include a \\?\ prefix (e.g., \\?\C:\...),
+    // which bun fails to resolve correctly.
+    let resources_path = dunce::canonicalize(&resources_path_buf)
+        .unwrap_or_else(|_| resources_path_buf.clone()) // Fallback to original if dunce fails
+        .to_str()
+        .expect("Failed to convert API resources path to string")
+        .to_string();
 
     let available_port =
         get_available_port().ok_or_else(|| "Failed to find available port".to_string())?;
 
-    let data_dir = app
+    let data_dir_buf = app
         .path()
         .app_data_dir()
         .expect("Failed to resolve app-data-dir");
+    let data_dir = dunce::canonicalize(&data_dir_buf)
+        .unwrap_or_else(|_| data_dir_buf.clone())
+        .to_str()
+        .expect("Failed to convert data dir to string")
+        .to_string();
 
     println!("Attempting to spawn API service on port {}", available_port);
     let command = app
         .shell()
-        .sidecar("bun")
+        .sidecar("devu-bun")
         .expect("Failed to initialize API service start command")
         .args([
             "run",
-            &resources_path.to_str().unwrap(),
+            &resources_path,
             "--port",
             &available_port.to_string(),
             "--app-resources-path",
-            resources_path.to_str().unwrap(),
+            &resources_path,
             "--app-data-dir",
-            data_dir.to_str().unwrap(),
+            &data_dir,
         ]);
 
     match command.spawn() {
