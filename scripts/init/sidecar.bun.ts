@@ -34,7 +34,7 @@ if (!targetTriple) {
   throw new Error('Failed to determine platform target triple')
 }
 const ext = process.platform === 'win32' ? '.exe' : ''
-const BUN_BINARY = `${join(BIN_TARGET_DIR, 'bun')}-${targetTriple}${ext}`
+const BUN_BINARY = `${join(BIN_TARGET_DIR, 'devu-bun')}-${targetTriple}${ext}`
 
 if (existsSync(BUN_BINARY)) {
   console.info(`Bun already exists at ${BUN_BINARY}. Skipping download.`)
