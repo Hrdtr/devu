@@ -1,6 +1,13 @@
-# Devu - Your AI-Powered Development Utility
+# Devu
+
+<img align="right" src="apps/devu/public/icon-rounded.png" width="86" height="86" />
+
+**Your AI-Powered Development Utility**
 
 Devu is a versatile development utility that provides a suite of tools to enhance your coding workflow. It's built with Tauri, offering cross-platform support for Windows, macOS, and Linux.
+
+[![GitHub license](https://img.shields.io/github/license/Hrdtr/devu.svg)](https://github.com/Hrdtr/devu/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/Hrdtr/devu.svg)](https://github.com/Hrdtr/devu/releases)
 
 ## Features
 
@@ -40,4 +47,4 @@ bun dev
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
