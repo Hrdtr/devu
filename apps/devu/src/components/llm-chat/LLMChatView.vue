@@ -3,7 +3,7 @@ import type { Virtualizer } from '@tanstack/vue-virtual'
 import type { ApiRouteOutput } from '@/composables/use-api'
 import { useClipboardItems, useLocalStorage, useScroll, watchDebounced } from '@vueuse/core'
 import hljs from 'highlight.js'
-import { ArrowUp, Check, Cog, Copy, History, Pencil, RotateCcw, Square, Trash, X } from 'lucide-vue-next'
+import { ArrowUp, Check, ChevronDown, Cog, Copy, History, Pencil, RotateCcw, Square, Trash, X } from 'lucide-vue-next'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import { ListboxContent, ListboxItem, ListboxRoot, ListboxVirtualizer } from 'reka-ui'
@@ -337,7 +337,33 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 function parseAssistantMessageContent(content: string) {
-  return marked.parse(content)
+  // Regex to find <think>...</think> or <think>... (unclosed)
+  const thinkBlockRegex = /<think>(.*?)<\/think>|<think>(.*)/s
+  const match = content.match(thinkBlockRegex)
+
+  let displayContent = content
+  let thinkingProcessContent = ''
+
+  let thinkCompleted = true
+  if (match) {
+    if (match[1] !== undefined) { // If it's a closed tag, take the content from group 1
+      thinkCompleted = true
+      thinkingProcessContent = match[1]
+      displayContent = content.replace(match[0], '') // Remove from main content
+    }
+    else if (match[2] !== undefined) { // If it's unclosed, take content from group 2
+      thinkCompleted = false
+      thinkingProcessContent = match[2]
+      displayContent = content.replace(match[0], '') // Remove from main content
+    }
+  }
+
+  // Return both the main content and the thinking process content
+  return {
+    thinkCompleted,
+    think: thinkingProcessContent.trim().length > 0 ? marked.parse(thinkingProcessContent) : null,
+    main: marked.parse(displayContent),
+  }
 }
 
 const { isMobile, openMobile, setOpenMobile } = useSidebar()
@@ -488,12 +514,29 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                     <div class="size-1.5 bg-primary rounded-full animate-caret-blink [animation-delay:-0.15s]" />
                     <div class="size-1.5 bg-primary rounded-full animate-caret-blink" />
                   </div>
-                  <div
-                    v-else
-                    :key="message.id"
-                    class="prose dark:prose-invert [&_pre:has(code)]:p-0 select-auto"
-                    v-html="parseAssistantMessageContent(message.content)"
-                  />
+                  <template v-else>
+                    <details
+                      v-if="parseAssistantMessageContent(message.content).think"
+                      class="mb-6 open:pb-0 border-b open:border-b-0 [&_svg]:-rotate-90 open:[&_svg]:rotate-0 open:[&_>_summary]:text-foreground [&_>_summary]:list-none [&_>_summary]:[list-style:none] [&_>_summary::-webkit-details-marker]:hidden"
+                    >
+                      <summary class="flex flex-row items-center justify-between py-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer [&_>_span]:cursor-pointer">
+                        <span v-if="!parseAssistantMessageContent(message.content).thinkCompleted" class="animate-pulse">Thinking...</span>
+                        <span v-else>Thought process</span>
+
+                        <ChevronDown class="transition w-4 h-4 -mr-1" />
+                      </summary>
+                      <div
+                        :key="`think-${message.id}`"
+                        class="prose dark:prose-invert [&_pre:has(code)]:p-0 select-auto mb-6 pt-2 pl-4 border-l opacity-80"
+                        v-html="parseAssistantMessageContent(message.content).think"
+                      />
+                    </details>
+                    <div
+                      :key="message.id"
+                      class="prose dark:prose-invert [&_pre:has(code)]:p-0 select-auto"
+                      v-html="parseAssistantMessageContent(message.content).main"
+                    />
+                  </template>
                 </div>
                 <!-- <div>{{ message.branch_id }}</div> -->
 

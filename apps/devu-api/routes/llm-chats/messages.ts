@@ -147,8 +147,20 @@ export const llmChatMessage = srv
               new AIMessage(assistantMessage.content),
               new HumanMessage('SYSTEM INSTRUCTION:\nGenerate a concise title for this conversation. Reply with only the title, avoiding special characters, formatting, or prefixes like \'A conversation...\'. Maximum length: 100 characters.'),
             ])
-            newChatTitle = typeof result === 'string' ? result : result.content.toString()
-            yield { action: 'set_chat_title', data: newChatTitle }
+            const rawTitle = (typeof result === 'string' ? result : result?.content?.toString() ?? '')
+              .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think>...</think> blocks if any
+              .trim()
+            const isValid
+              = rawTitle.length > 0
+                && rawTitle.length <= 100
+                && !/^a conversation/i.test(rawTitle)
+                && !/^conversation of/i.test(rawTitle)
+                && /^[a-z0-9\s'":,.-]+$/i.test(rawTitle)
+
+            const newChatTitle = rawTitle && isValid ? rawTitle : undefined
+            if (newChatTitle) {
+              yield { action: 'set_chat_title', data: newChatTitle }
+            }
           }
         }
         finally {
