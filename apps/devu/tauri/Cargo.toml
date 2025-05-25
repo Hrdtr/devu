@@ -1,6 +1,6 @@
 [package]
 name = "devu"
-version = "1.0.0-alpha.5"
+version = "1.0.0-alpha.6"
 description = "Developer utility collections"
 authors = [ "Herdi Tr." ]
 edition = "2021"

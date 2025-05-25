@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "identifier": "dev.hrdtr.devu-alpha",
   "app": {
     "windows": [
