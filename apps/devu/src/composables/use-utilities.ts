@@ -1,12 +1,11 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { ApiRouteOutput } from './use-api'
-import { createSharedComposable } from '@vueuse/core'
 import { useFilter } from 'reka-ui'
 import { onMounted, ref, toValue, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 
-export function _useUtility({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+export function useUtility({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
   const { client, safe } = useApi()
   const { contains } = useFilter({ sensitivity: 'base' })
 
@@ -20,9 +19,7 @@ export function _useUtility({ search }: { search?: MaybeRefOrGetter<string> } = 
       return
     }
     utilityState.value = 'loading'
-    const { data, error } = await safe(client.utility.all({
-      search: toValue(search),
-    }))
+    const { data, error } = await safe(client.utility.all())
     if (error) {
       toast.error(error?.message || String(error))
       utilityState.value = 'idle'
@@ -42,4 +39,3 @@ export function _useUtility({ search }: { search?: MaybeRefOrGetter<string> } = 
     loadUtilities,
   }
 }
-export const useUtility = createSharedComposable(_useUtility)

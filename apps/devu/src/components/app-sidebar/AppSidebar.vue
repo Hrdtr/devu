@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CloudDownload, LoaderCircle, Search, SquarePen } from 'lucide-vue-next'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { SidebarMainNavigation, SidebarMainNavigationTab } from '@/components/sidebar'
@@ -18,12 +18,13 @@ import {
 } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLLMChatState } from '@/composables/use-llm-chat-state'
+import { useSidebarSearchKeyword } from '@/composables/use-sidebar-search-keyword'
 import { useUpdater } from '@/composables/use-updater'
 
 const route = useRoute()
 const router = useRouter()
 
-const search = ref('')
+const search = useSidebarSearchKeyword()
 
 const sidebarHeader = useTemplateRef('sidebarHeaderRef')
 const sidebarGroupHeader = useTemplateRef('sidebarGroupHeaderRef')
@@ -182,7 +183,6 @@ function downloadAndInstallUpdate() {
           <SidebarGroupContent>
             <SidebarMainNavigation
               v-model:active-view="activeView"
-              :search="search"
               :sidebar-header-ref="(sidebarHeader as any)"
               :sidebar-group-header-ref="sidebarGroupHeader"
             />

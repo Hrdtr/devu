@@ -1,10 +1,9 @@
 import type { ApiRouteInput, ApiRouteOutput } from './use-api'
-import { createSharedComposable } from '@vueuse/core'
 import { onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 
-export function _useLLMChatProfile() {
+export function useLLMChatProfile() {
   const { client, safe } = useApi()
 
   const profileState = ref<'idle' | 'loading' | 'pending'>('idle')
@@ -87,4 +86,3 @@ export function _useLLMChatProfile() {
     deleteProfile,
   }
 }
-export const useLLMChatProfile = createSharedComposable(_useLLMChatProfile)

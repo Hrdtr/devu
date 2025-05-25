@@ -1,5 +1,4 @@
 import type { MaybeRefOrGetter } from 'vue'
-import { createSharedComposable } from '@vueuse/core'
 import { useFilter } from 'reka-ui'
 import { onMounted, ref, toValue, watch } from 'vue'
 
@@ -127,9 +126,10 @@ const $codePlaygrounds: CodePlayground[] = [
     referenceUrl: 'https://livecodes.io/docs/languages/gleam',
   },
 ]
+
 export const codePlaygrounds = $codePlaygrounds
 
-export function _useCodePlayground({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+export function useCodePlayground({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
   const { contains } = useFilter({ sensitivity: 'base' })
 
   const playgroundState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
@@ -156,4 +156,3 @@ export function _useCodePlayground({ search }: { search?: MaybeRefOrGetter<strin
     loadCodePlaygrounds,
   }
 }
-export const useCodePlayground = createSharedComposable(_useCodePlayground)

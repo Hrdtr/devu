@@ -1,11 +1,10 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { ApiRouteInput, ApiRouteOutput } from './use-api'
-import { createSharedComposable } from '@vueuse/core'
 import { computed, onMounted, ref, toValue, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 
-export function _useLLMChat({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+export function useLLMChat({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
   const { client, safe } = useApi()
 
   const chatState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
@@ -129,4 +128,3 @@ export function _useLLMChat({ search }: { search?: MaybeRefOrGetter<string> } = 
     deleteChat,
   }
 }
-export const useLLMChat = createSharedComposable(_useLLMChat)

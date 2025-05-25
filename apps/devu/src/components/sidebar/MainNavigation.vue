@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { MaybeComputedElementRef } from '@vueuse/core'
-import type { MaybeRefOrGetter } from 'vue'
 import { unrefElement, useElementBounding } from '@vueuse/core'
 import { Edit, EllipsisVertical, Trash, Wrench } from 'lucide-vue-next'
 import { ListboxContent, ListboxItem, ListboxRoot, ListboxVirtualizer, VisuallyHidden } from 'reka-ui'
-import { ref, toValue } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '@/components/responsive-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -17,20 +16,21 @@ import { useCodePlayground } from '@/composables/use-code-playground'
 import { useCodeSnippet } from '@/composables/use-code-snippet'
 import { useLLMChat } from '@/composables/use-llm-chat'
 import { useLLMChatState } from '@/composables/use-llm-chat-state'
+import { useSidebarSearchKeyword } from '@/composables/use-sidebar-search-keyword'
 import { useUtility } from '@/composables/use-utilities'
 import { sidebarMenuButtonVariants } from '../ui/sidebar/index'
 
 const props = defineProps<{
-  search: MaybeRefOrGetter<string>
   sidebarHeaderRef: MaybeComputedElementRef<HTMLElement | null | undefined>
   sidebarGroupHeaderRef: MaybeComputedElementRef<HTMLElement | null | undefined>
 }>()
 const activeView = defineModel<string | undefined>('active-view', { required: true })
 const route = useRoute()
+const search = useSidebarSearchKeyword()
 const dropdownMenuKey = ref(0)
 
 const { chatId } = useLLMChatState()
-const { chats, moreChatsAvailable, loadMoreChats, chatState, deleteChat, updateChat } = useLLMChat({ search: () => toValue(props.search) })
+const { chats, moreChatsAvailable, loadMoreChats, chatState, deleteChat, updateChat } = useLLMChat({ search })
 const newChatTitle = ref('')
 const updateChatTitleId = ref<string>()
 function updateChatTitle() {
@@ -50,9 +50,9 @@ function updateChatTitle() {
     })
 }
 
-const { utilities } = useUtility({ search: () => toValue(props.search) })
-const { codeSnippets } = useCodeSnippet({ search: () => toValue(props.search) })
-const { codePlaygrounds } = useCodePlayground({ search: () => toValue(props.search) })
+const { utilities } = useUtility({ search })
+const { codeSnippets } = useCodeSnippet({ search })
+const { codePlaygrounds } = useCodePlayground({ search })
 
 const { height: sidebarHeaderHeight } = useElementBounding(() => unrefElement(props.sidebarHeaderRef))
 const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefElement(props.sidebarGroupHeaderRef))
