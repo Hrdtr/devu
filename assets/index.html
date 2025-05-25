@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Devu - Open Source AI-Powered Development Utility</title>
+    <link rel="icon" href="/icon.png" type="image/png" />
+    <meta
+      name="description"
+      content="A versatile open-source development utility that provides a suite of tools to enhance your coding workflow, offering cross-platform support for Windows, macOS, and Linux."
+    />
+    <script
+      defer
+      data-domain="devu.hrdtr.dev"
+      src="https://plausible.pvt.hrdtr.dev/js/script.file-downloads.outbound-links.tagged-events.js"
+    ></script>
+    <style>
+      /* Source: https://play.tailwindcss.com/SKZzHTc5mF */
+      /*! tailwindcss v4.1.7 | MIT License | https://tailwindcss.com */
+      @layer properties;
+      @layer theme, base, components, utilities;
+      @layer theme {
+        :root,
+        :host {
+          --font-sans:
+            ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
+          --font-mono:
+            ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+          --color-teal-200: oklch(91% 0.096 180.426);
+          --color-teal-400: oklch(77.7% 0.152 181.912);
+          --color-teal-600: oklch(60% 0.118 184.704);
+          --color-teal-800: oklch(43.7% 0.078 188.216);
+          --color-neutral-50: oklch(98.5% 0 0);
+          --color-neutral-100: oklch(97% 0 0);
+          --color-neutral-200: oklch(92.2% 0 0);
+          --color-neutral-300: oklch(87% 0 0);
+          --color-neutral-700: oklch(37.1% 0 0);
+          --color-neutral-800: oklch(26.9% 0 0);
+          --color-neutral-900: oklch(20.5% 0 0);
+          --color-neutral-950: oklch(14.5% 0 0);
+          --color-white: #fff;
+          --spacing: 0.25rem;
+          --breakpoint-md: 48rem;
+          --text-sm: 0.875rem;
+          --text-sm--line-height: calc(1.25 / 0.875);
+          --text-lg: 1.125rem;
+          --text-lg--line-height: calc(1.75 / 1.125);
+          --text-5xl: 3rem;
+          --text-5xl--line-height: 1;
+          --font-weight-thin: 100;
+          --font-weight-medium: 500;
+          --font-weight-semibold: 600;
+          --radius-lg: 0.5rem;
+          --radius-xl: 0.75rem;
+          --radius-4xl: 2rem;
+          --default-transition-duration: 150ms;
+          --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          --default-font-family: var(--font-sans);
+          --default-mono-font-family: var(--font-mono);
+        }
+      }
+      @layer base {
+        *,
+        ::after,
+        ::before,
+        ::backdrop,
+        ::file-selector-button {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          border: 0 solid;
+        }
+        html,
+        :host {
+          line-height: 1.5;
+          -webkit-text-size-adjust: 100%;
+          tab-size: 4;
+          font-family: var(
+            --default-font-family,
+            ui-sans-serif,
+            system-ui,
+            sans-serif,
+            'Apple Color Emoji',
+            'Segoe UI Emoji',
+            'Segoe UI Symbol',
+            'Noto Color Emoji'
+          );
+          font-feature-settings: var(--default-font-feature-settings, normal);
+          font-variation-settings: var(--default-font-variation-settings, normal);
+          -webkit-tap-highlight-color: transparent;
+        }
+        hr {
+          height: 0;
+          color: inherit;
+          border-top-width: 1px;
+        }
+        abbr:where([title]) {
+          -webkit-text-decoration: underline dotted;
+          text-decoration: underline dotted;
+        }
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          font-size: inherit;
+          font-weight: inherit;
+        }
+        a {
+          color: inherit;
+          -webkit-text-decoration: inherit;
+          text-decoration: inherit;
+        }
+        b,
+        strong {
+          font-weight: bolder;
+        }
+        code,
+        kbd,
+        samp,
+        pre {
+          font-family: var(
+            --default-mono-font-family,
+            ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            'Liberation Mono',
+            'Courier New',
+            monospace
+          );
+          font-feature-settings: var(--default-mono-font-feature-settings, normal);
+          font-variation-settings: var(--default-mono-font-variation-settings, normal);
+          font-size: 1em;
+        }
+        small {
+          font-size: 80%;
+        }
+        sub,
+        sup {
+          font-size: 75%;
+          line-height: 0;
+          position: relative;
+          vertical-align: baseline;
+        }
+        sub {
+          bottom: -0.25em;
+        }
+        sup {
+          top: -0.5em;
+        }
+        table {
+          text-indent: 0;
+          border-color: inherit;
+          border-collapse: collapse;
+        }
+        :-moz-focusring {
+          outline: auto;
+        }
+        progress {
+          vertical-align: baseline;
+        }
+        summary {
+          display: list-item;
+        }
+        ol,
+        ul,
+        menu {
+          list-style: none;
+        }
+        img,
+        svg,
+        video,
+        canvas,
+        audio,
+        iframe,
+        embed,
+        object {
+          display: block;
+          /* vertical-align: middle; */
+        }
+        img,
+        video {
+          max-width: 100%;
+          height: auto;
+        }
+        button,
+        input,
+        select,
+        optgroup,
+        textarea,
+        ::file-selector-button {
+          font: inherit;
+          font-feature-settings: inherit;
+          font-variation-settings: inherit;
+          letter-spacing: inherit;
+          color: inherit;
+          border-radius: 0;
+          background-color: transparent;
+          opacity: 1;
+        }
+        :where(select:is([multiple], [size])) optgroup {
+          font-weight: bolder;
+        }
+        :where(select:is([multiple], [size])) optgroup option {
+          padding-inline-start: 20px;
+        }
+        ::file-selector-button {
+          margin-inline-end: 4px;
+        }
+        ::placeholder {
+          opacity: 1;
+        }
+        @supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+          ::placeholder {
+            color: currentcolor;
+            @supports (color: color-mix(in lab, red, red)) {
+              color: color-mix(in oklab, currentcolor 50%, transparent);
+            }
+          }
+        }
+        textarea {
+          resize: vertical;
+        }
+        ::-webkit-search-decoration {
+          -webkit-appearance: none;
+        }
+        ::-webkit-date-and-time-value {
+          min-height: 1lh;
+          text-align: inherit;
+        }
+        ::-webkit-datetime-edit {
+          display: inline-flex;
+        }
+        ::-webkit-datetime-edit-fields-wrapper {
+          padding: 0;
+        }
+        ::-webkit-datetime-edit,
+        ::-webkit-datetime-edit-year-field,
+        ::-webkit-datetime-edit-month-field,
+        ::-webkit-datetime-edit-day-field,
+        ::-webkit-datetime-edit-hour-field,
+        ::-webkit-datetime-edit-minute-field,
+        ::-webkit-datetime-edit-second-field,
+        ::-webkit-datetime-edit-millisecond-field,
+        ::-webkit-datetime-edit-meridiem-field {
+          padding-block: 0;
+        }
+        :-moz-ui-invalid {
+          box-shadow: none;
+        }
+        button,
+        input:where([type='button'], [type='reset'], [type='submit']),
+        ::file-selector-button {
+          appearance: button;
+        }
+        ::-webkit-inner-spin-button,
+        ::-webkit-outer-spin-button {
+          height: auto;
+        }
+        [hidden]:where(:not([hidden='until-found'])) {
+          display: none !important;
+        }
+      }
+      @layer utilities {
+        .invisible {
+          visibility: hidden;
+        }
+        .absolute {
+          position: absolute;
+        }
+        .relative {
+          position: relative;
+        }
+        .top-full {
+          top: 100%;
+        }
+        .right-1 {
+          right: calc(var(--spacing) * 1);
+        }
+        .left-1\/2 {
+          left: calc(1 / 2 * 100%);
+        }
+        .z-10 {
+          z-index: 10;
+        }
+        .mx-auto {
+          margin-inline: auto;
+        }
+        .my-6 {
+          margin-block: calc(var(--spacing) * 6);
+        }
+        .mr-3\.5 {
+          margin-right: calc(var(--spacing) * 3.5);
+        }
+        .mb-1 {
+          margin-bottom: calc(var(--spacing) * 1);
+        }
+        .mb-2 {
+          margin-bottom: calc(var(--spacing) * 2);
+        }
+        .mb-4 {
+          margin-bottom: calc(var(--spacing) * 4);
+        }
+        .mb-8 {
+          margin-bottom: calc(var(--spacing) * 8);
+        }
+        .block {
+          display: block;
+        }
+        .flex {
+          display: flex;
+        }
+        .inline-flex {
+          display: inline-flex;
+        }
+        .h-0\.5 {
+          height: calc(var(--spacing) * 0.5);
+        }
+        .h-4 {
+          height: calc(var(--spacing) * 4);
+        }
+        .h-5 {
+          height: calc(var(--spacing) * 5);
+        }
+        .h-12 {
+          height: calc(var(--spacing) * 12);
+        }
+        .h-36 {
+          height: calc(var(--spacing) * 36);
+        }
+        .h-\[calc\(48px\+8px\)\] {
+          height: calc(48px + 8px);
+        }
+        .min-h-dvh {
+          min-height: 100dvh;
+        }
+        .w-4 {
+          width: calc(var(--spacing) * 4);
+        }
+        .w-5 {
+          width: calc(var(--spacing) * 5);
+        }
+        .w-12 {
+          width: calc(var(--spacing) * 12);
+        }
+        .w-36 {
+          width: calc(var(--spacing) * 36);
+        }
+        .w-72 {
+          width: calc(var(--spacing) * 72);
+        }
+        .w-full {
+          width: 100%;
+        }
+        .max-w-64 {
+          max-width: calc(var(--spacing) * 64);
+        }
+        .max-w-screen-md {
+          max-width: var(--breakpoint-md);
+        }
+        .shrink-0 {
+          flex-shrink: 0;
+        }
+        .-translate-x-1\/2 {
+          --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
+          translate: var(--tw-translate-x) var(--tw-translate-y);
+        }
+        .cursor-pointer {
+          cursor: pointer;
+        }
+        .flex-col {
+          flex-direction: column;
+        }
+        .flex-row {
+          flex-direction: row;
+        }
+        .items-center {
+          align-items: center;
+        }
+        .justify-center {
+          justify-content: center;
+        }
+        .justify-end {
+          justify-content: flex-end;
+        }
+        .gap-1 {
+          gap: calc(var(--spacing) * 1);
+        }
+        .gap-2 {
+          gap: calc(var(--spacing) * 2);
+        }
+        .gap-4 {
+          gap: calc(var(--spacing) * 4);
+        }
+        .gap-8 {
+          gap: calc(var(--spacing) * 8);
+        }
+        .overflow-hidden {
+          overflow: hidden;
+        }
+        .rounded-4xl {
+          border-radius: var(--radius-4xl);
+        }
+        .rounded-lg {
+          border-radius: var(--radius-lg);
+        }
+        .rounded-xl {
+          border-radius: var(--radius-xl);
+        }
+        .border {
+          border-style: var(--tw-border-style);
+          border-width: 1px;
+        }
+        .border-neutral-950 {
+          border-color: var(--color-neutral-950);
+        }
+        .bg-neutral-200 {
+          background-color: var(--color-neutral-200);
+        }
+        .bg-neutral-300 {
+          background-color: var(--color-neutral-300);
+        }
+        .bg-neutral-700 {
+          background-color: var(--color-neutral-700);
+        }
+        .bg-neutral-950 {
+          background-color: var(--color-neutral-950);
+        }
+        .bg-white {
+          background-color: var(--color-white);
+        }
+        .px-8 {
+          padding-inline: calc(var(--spacing) * 8);
+        }
+        .py-1 {
+          padding-block: calc(var(--spacing) * 1);
+        }
+        .py-2 {
+          padding-block: calc(var(--spacing) * 2);
+        }
+        .py-40 {
+          padding-block: calc(var(--spacing) * 40);
+        }
+        .pr-2 {
+          padding-right: calc(var(--spacing) * 2);
+        }
+        .pr-14 {
+          padding-right: calc(var(--spacing) * 14);
+        }
+        .pl-6 {
+          padding-left: calc(var(--spacing) * 6);
+        }
+        .text-center {
+          text-align: center;
+        }
+        .text-5xl {
+          font-size: var(--text-5xl);
+          line-height: var(--tw-leading, var(--text-5xl--line-height));
+        }
+        .text-lg {
+          font-size: var(--text-lg);
+          line-height: var(--tw-leading, var(--text-lg--line-height));
+        }
+        .text-sm {
+          font-size: var(--text-sm);
+          line-height: var(--tw-leading, var(--text-sm--line-height));
+        }
+        .font-medium {
+          --tw-font-weight: var(--font-weight-medium);
+          font-weight: var(--font-weight-medium);
+        }
+        .font-semibold {
+          --tw-font-weight: var(--font-weight-semibold);
+          font-weight: var(--font-weight-semibold);
+        }
+        .font-thin {
+          --tw-font-weight: var(--font-weight-thin);
+          font-weight: var(--font-weight-thin);
+        }
+        .text-neutral-50 {
+          color: var(--color-neutral-50);
+        }
+        .text-neutral-800 {
+          color: var(--color-neutral-800);
+        }
+        .text-teal-400 {
+          color: var(--color-teal-400);
+        }
+        .text-teal-600 {
+          color: var(--color-teal-600);
+        }
+        .underline {
+          text-decoration-line: underline;
+        }
+        .opacity-0 {
+          opacity: 0%;
+        }
+        .opacity-80 {
+          opacity: 80%;
+        }
+        .transition-\[width\] {
+          transition-property: width;
+          transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+          transition-duration: var(--tw-duration, var(--default-transition-duration));
+        }
+        .transition-all {
+          transition-property: all;
+          transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+          transition-duration: var(--tw-duration, var(--default-transition-duration));
+        }
+        .transition-colors {
+          transition-property:
+            color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+            --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+          transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+          transition-duration: var(--tw-duration, var(--default-transition-duration));
+        }
+        .group-focus-within\:visible {
+          &:is(:where(.group):focus-within *) {
+            visibility: visible;
+          }
+        }
+        .group-focus-within\:translate-y-1 {
+          &:is(:where(.group):focus-within *) {
+            --tw-translate-y: calc(var(--spacing) * 1);
+            translate: var(--tw-translate-x) var(--tw-translate-y);
+          }
+        }
+        .group-focus-within\:opacity-100 {
+          &:is(:where(.group):focus-within *) {
+            opacity: 100%;
+          }
+        }
+        .group-hover\:w-\[calc\(100\%-8px\)\] {
+          &:is(:where(.group):hover *) {
+            @media (hover: hover) {
+              width: calc(100% - 8px);
+            }
+          }
+        }
+        .selection\:bg-teal-200 {
+          & *::selection {
+            background-color: var(--color-teal-200);
+          }
+          &::selection {
+            background-color: var(--color-teal-200);
+          }
+        }
+        .hover\:bg-neutral-200 {
+          &:hover {
+            @media (hover: hover) {
+              background-color: var(--color-neutral-200);
+            }
+          }
+        }
+        .hover\:bg-neutral-300\/50 {
+          &:hover {
+            @media (hover: hover) {
+              background-color: color-mix(in srgb, oklch(87% 0 0) 50%, transparent);
+              @supports (color: color-mix(in lab, red, red)) {
+                background-color: color-mix(in oklab, var(--color-neutral-300) 50%, transparent);
+              }
+            }
+          }
+        }
+        .hover\:underline {
+          &:hover {
+            @media (hover: hover) {
+              text-decoration-line: underline;
+            }
+          }
+        }
+        .focus\:bg-neutral-200 {
+          &:focus {
+            background-color: var(--color-neutral-200);
+          }
+        }
+        .md\:left-0 {
+          @media (width >= 48rem) {
+            left: calc(var(--spacing) * 0);
+          }
+        }
+        .md\:max-w-screen-md {
+          @media (width >= 48rem) {
+            max-width: var(--breakpoint-md);
+          }
+        }
+        .md\:-translate-x-0 {
+          @media (width >= 48rem) {
+            --tw-translate-x: calc(var(--spacing) * -0);
+            translate: var(--tw-translate-x) var(--tw-translate-y);
+          }
+        }
+        .md\:flex-row {
+          @media (width >= 48rem) {
+            flex-direction: row;
+          }
+        }
+        .md\:items-start {
+          @media (width >= 48rem) {
+            align-items: flex-start;
+          }
+        }
+        .md\:text-start {
+          @media (width >= 48rem) {
+            text-align: start;
+          }
+        }
+        .dark\:border-neutral-50 {
+          @media (prefers-color-scheme: dark) {
+            border-color: var(--color-neutral-50);
+          }
+        }
+        .dark\:bg-neutral-50 {
+          @media (prefers-color-scheme: dark) {
+            background-color: var(--color-neutral-50);
+          }
+        }
+        .dark\:bg-neutral-300 {
+          @media (prefers-color-scheme: dark) {
+            background-color: var(--color-neutral-300);
+          }
+        }
+        .dark\:bg-neutral-700 {
+          @media (prefers-color-scheme: dark) {
+            background-color: var(--color-neutral-700);
+          }
+        }
+        .dark\:bg-neutral-800 {
+          @media (prefers-color-scheme: dark) {
+            background-color: var(--color-neutral-800);
+          }
+        }
+        .dark\:bg-neutral-900 {
+          @media (prefers-color-scheme: dark) {
+            background-color: var(--color-neutral-900);
+          }
+        }
+        .dark\:text-neutral-100 {
+          @media (prefers-color-scheme: dark) {
+            color: var(--color-neutral-100);
+          }
+        }
+        .dark\:text-neutral-950 {
+          @media (prefers-color-scheme: dark) {
+            color: var(--color-neutral-950);
+          }
+        }
+        .dark\:text-teal-400 {
+          @media (prefers-color-scheme: dark) {
+            color: var(--color-teal-400);
+          }
+        }
+        .dark\:selection\:bg-teal-800 {
+          @media (prefers-color-scheme: dark) {
+            & *::selection {
+              background-color: var(--color-teal-800);
+            }
+            &::selection {
+              background-color: var(--color-teal-800);
+            }
+          }
+        }
+        .dark\:hover\:bg-neutral-700\/50 {
+          @media (prefers-color-scheme: dark) {
+            &:hover {
+              @media (hover: hover) {
+                background-color: color-mix(in srgb, oklch(37.1% 0 0) 50%, transparent);
+                @supports (color: color-mix(in lab, red, red)) {
+                  background-color: color-mix(in oklab, var(--color-neutral-700) 50%, transparent);
+                }
+              }
+            }
+          }
+        }
+        .dark\:hover\:bg-neutral-800 {
+          @media (prefers-color-scheme: dark) {
+            &:hover {
+              @media (hover: hover) {
+                background-color: var(--color-neutral-800);
+              }
+            }
+          }
+        }
+        .dark\:focus\:bg-neutral-800 {
+          @media (prefers-color-scheme: dark) {
+            &:focus {
+              background-color: var(--color-neutral-800);
+            }
+          }
+        }
+      }
+      @property --tw-translate-x {
+        syntax: '*';
+        inherits: false;
+        initial-value: 0;
+      }
+      @property --tw-translate-y {
+        syntax: '*';
+        inherits: false;
+        initial-value: 0;
+      }
+      @property --tw-translate-z {
+        syntax: '*';
+        inherits: false;
+        initial-value: 0;
+      }
+      @property --tw-border-style {
+        syntax: '*';
+        inherits: false;
+        initial-value: solid;
+      }
+      @property --tw-font-weight {
+        syntax: '*';
+        inherits: false;
+      }
+      @layer properties {
+        @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or
+          ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
+          *,
+          ::before,
+          ::after,
+          ::backdrop {
+            --tw-translate-x: 0;
+            --tw-translate-y: 0;
+            --tw-translate-z: 0;
+            --tw-border-style: solid;
+            --tw-font-weight: initial;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="min-h-dvh w-full bg-white px-8 py-40 text-neutral-800 selection:bg-teal-200 dark:bg-neutral-900 dark:text-neutral-100 dark:selection:bg-teal-800"
+    >
+      <div
+        class="relative mx-auto mb-8 flex w-full max-w-screen-md flex-col items-center justify-center gap-8 md:flex-row"
+      >
+        <div class="shrink-0">
+          <img src="/icon.png" alt="Devu's icon" class="h-36 w-36 rounded-4xl" />
+        </div>
+        <div>
+          <h1 class="mb-4 text-center text-5xl font-semibold md:text-start">
+            Devu&nbsp;<span class="font-thin opacity-80" id="release-version"></span>
+          </h1>
+          <p class="text-center text-lg opacity-80 md:text-start">
+            A versatile open-source development utility that provides a suite of tools to enhance your coding workflow,
+            offering cross-platform support for Windows, macOS, and Linux.
+          </p>
+        </div>
+      </div>
+
+      <div class="relative mx-auto flex w-full max-w-screen-md flex-col items-center md:items-start">
+        <p class="mb-2 opacity-80">Download</p>
+
+        <div class="mb-4 flex flex-col items-center md:flex-row gap-2">
+          <a
+            id="main-download-cta"
+            href="#"
+            class="group relative inline-flex h-[calc(48px+8px)] cursor-pointer items-center justify-center rounded-xl border border-neutral-950 bg-neutral-950 py-1 pr-14 pl-6 font-medium text-neutral-50 dark:border-neutral-50 dark:bg-neutral-50 dark:text-neutral-950"
+          >
+            <span class="z-10 pr-2"><!-- Main download CTA Label --></span>
+            <div
+              class="absolute right-1 inline-flex h-12 w-12 items-center justify-end rounded-lg bg-neutral-700 transition-[width] group-hover:w-[calc(100%-8px)] dark:bg-neutral-300"
+            >
+              <div class="mr-3.5 flex items-center justify-center">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-neutral-50 dark:text-neutral-950"
+                >
+                  <path
+                    d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                    fill="currentColor"
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </a>
+          <div class="group relative" id="more-download-options">
+            <button
+              class="group relative inline-flex h-[calc(48px+8px)] cursor-pointer items-center justify-center rounded-xl bg-neutral-300 px-8 py-1 font-medium transition-colors hover:bg-neutral-200 focus:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
+            >
+              More Download Options
+            </button>
+            <nav
+              tabindex="0"
+              class="invisible absolute top-full left-1/2 z-10 w-72 -translate-x-1/2 overflow-hidden rounded-xl bg-neutral-200 opacity-0 transition-all group-focus-within:visible group-focus-within:translate-y-1 group-focus-within:opacity-100 md:left-0 md:-translate-x-0 dark:bg-neutral-800"
+            >
+              <ul>
+                <li>
+                  <a href="#" class="block px-8 py-2 hover:bg-neutral-300/50 dark:hover:bg-neutral-700/50">
+                    <!-- Platform specific download label -->
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <p id="help-notice" class="text-sm text-center md:text-start opacity-80">
+          Having trouble? Visit the
+          <a href="https://github.com/Hrdtr/devu/releases/" class="text-teal-600 underline dark:text-teal-400"
+            >releases</a
+          >
+          page for all downloads.
+        </p>
+      </div>
+
+      <div
+        role="separator"
+        class="mx-auto my-6 h-0.5 w-full max-w-64 bg-neutral-200 md:max-w-screen-md dark:bg-neutral-800"
+      ></div>
+
+      <div class="relative mx-auto flex w-full max-w-screen-md flex-col items-center md:items-start">
+        <p class="mb-1 opacity-80">Support development through</p>
+        <div class="mb-2 flex flex-row gap-4">
+          <a
+            href="https://github.com/Hrdtr/devu"
+            class="inline-flex items-center gap-1 text-teal-400 hover:underline dark:text-teal-400"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-github-icon lucide-github h-4 w-4"
+            >
+              <path
+                d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"
+              />
+              <path d="M9 18c-4.51 2-5-2-7-2" />
+            </svg>
+            Contributions</a
+          >
+          <a
+            href="https://github.com/Hrdtr/devu"
+            class="inline-flex items-center gap-1 text-teal-400 hover:underline dark:text-teal-400"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-hand-heart-icon lucide-hand-heart h-4 w-4"
+            >
+              <path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16" />
+              <path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" />
+              <path d="m2 15 6 6" />
+              <path
+                d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12Z"
+              />
+            </svg>
+            Sponsorship</a
+          >
+        </div>
+      </div>
+    </div>
+    <script>
+      async function fetchRelease() {
+        const cache = localStorage.getItem('devu-release')
+        if (cache) {
+          try {
+            const parsed = JSON.parse(cache)
+            if (new Date(parsed.fetchedAt).getTime() > Date.now() - 1000 * 60 * 10) {
+              return parsed.data
+            }
+          } catch {
+            localStorage.removeItem('devu-release')
+          }
+        }
+
+        const repo = 'Hrdtr/devu'
+        const releaseBaseUrl = `https://api.github.com/repos/${repo}/releases`
+        const contentBaseUrl = `https://raw.githubusercontent.com/${repo}`
+
+        let release = null
+        const latestResponse = await fetch(`${releaseBaseUrl}/latest`)
+        const latest = latestResponse.ok ? await latestResponse.json() : null
+        if (latest && latest.assets && assets.length > 0) {
+          release = latest
+        }
+        if (!release) {
+          const releaseJsonResponse = await fetch(`${contentBaseUrl}/beta/release.json`)
+          const releaseJson = releaseJsonResponse.ok ? await releaseJsonResponse.json() : null
+          if (releaseJson && releaseJson.version) {
+            const betaResponse = await fetch(`${releaseBaseUrl}/tags/v${releaseJson.version}`)
+            const beta = betaResponse.ok ? await betaResponse.json() : null
+            if (beta && beta.assets && beta.assets.length > 0) {
+              release = beta
+            }
+          }
+        }
+        if (!release) {
+          const releaseJsonResponse = await fetch(`${contentBaseUrl}/alpha/release.json`)
+          const releaseJson = releaseJsonResponse ? await releaseJsonResponse.json() : null
+          if (releaseJson && releaseJson.version) {
+            const alphaResponse = await fetch(`${releaseBaseUrl}/tags/v${releaseJson.version}`)
+            const alpha = alphaResponse.ok ? await alphaResponse.json() : null
+            if (alpha && alpha.assets && alpha.assets.length > 0) {
+              release = alpha
+            }
+          }
+        }
+
+        if (release) {
+          localStorage.setItem(
+            'devu-release',
+            JSON.stringify({
+              fetchedAt: new Date().toISOString(),
+              data: release,
+            }),
+          )
+        }
+
+        return release
+      }
+
+      function getOSAndArch() {
+        const userAgent = navigator.userAgent.toLowerCase()
+
+        // Check if it's a mobile/tablet device first
+        const isMobile =
+          /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(userAgent) ||
+          (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /macintosh/.test(userAgent))
+
+        if (isMobile) {
+          return null
+        }
+
+        let os = 'unknown'
+        let arch = 'x64' // Default to x64
+
+        if (userAgent.includes('win')) {
+          os = 'windows'
+          // Windows architecture detection
+          if (userAgent.includes('wow64') || userAgent.includes('win64') || userAgent.includes('x64')) {
+            arch = 'x64'
+          } else if (userAgent.includes('arm64') || userAgent.includes('aarch64')) {
+            arch = 'aarch64'
+          }
+        } else if (userAgent.includes('mac')) {
+          os = 'macos'
+
+          // Apple Silicon detection - browsers limit detection for privacy
+          // We'll use multiple heuristics and let users manually select if needed
+
+          // Check for explicit ARM indicators first
+          const platform = navigator.platform.toLowerCase()
+          if (platform.includes('arm') || userAgent.includes('aarch64')) {
+            arch = 'aarch64'
+          } else {
+            // Since we can't reliably detect Apple Silicon from browser,
+            // we'll default to providing both options or use other hints
+
+            // Heuristic: Apple Silicon Macs typically have 8+ cores
+            // But this isn't foolproof as Intel Macs can also have 8+ cores
+            const cores = navigator.hardwareConcurrency || 0
+
+            // Check for potential Apple Silicon indicators
+            // Note: This is not 100% reliable due to browser privacy limitations
+            if (cores >= 8) {
+              // Likely Apple Silicon, but could be high-end Intel Mac
+              // In a real app, you might want to ask the user or provide both options
+              arch = 'aarch64' // Assuming newer Macs are more likely to be Apple Silicon
+            } else {
+              arch = 'x64' // Lower core count more likely to be Intel
+            }
+
+            // Alternative: You could return both architectures for macOS
+            // and let the user choose, or detect via a small test download
+          }
+        } else if (userAgent.includes('linux')) {
+          os = 'linux'
+          if (userAgent.includes('aarch64') || userAgent.includes('arm64')) {
+            arch = 'aarch64'
+          } else if (userAgent.includes('x86_64') || userAgent.includes('amd64')) {
+            arch = 'x64'
+          } else if (userAgent.includes('i686') || userAgent.includes('i386')) {
+            arch = 'x86'
+          } else {
+            arch = 'x64' // Default for Linux
+          }
+        }
+
+        return { os, arch }
+      }
+
+      function getMainDownloadCTAUrl(release, os, arch) {
+        if (!release || !release.assets) {
+          return null
+        }
+
+        const assets = release.assets
+        let downloadUrl = null
+
+        // Helper to find the best asset (prefer non-debug)
+        const findAsset = (patterns) => {
+          let asset = null
+          for (const pattern of patterns) {
+            const foundAsset = assets.find(
+              (asset) =>
+                pattern.test(asset.browser_download_url) &&
+                !asset.browser_download_url.endsWith('.sig') &&
+                !asset.browser_download_url.includes('-debug') &&
+                !asset.browser_download_url.endsWith('/latest.json'),
+            )
+            if (foundAsset) {
+              asset = foundAsset
+              break
+            }
+          }
+          return asset
+        }
+
+        if (os === 'windows') {
+          // Windows: .exe (setup) or .msi
+          const patterns = [/Devu_.*x64-setup\.exe$/, /Devu_.*x64_en-US\.msi$/]
+          const asset = findAsset(patterns)
+          if (asset) {
+            downloadUrl = asset.browser_download_url
+          }
+        } else if (os === 'macos') {
+          // macOS: .dmg or .app.tar.gz
+          if (arch === 'aarch64') {
+            const patterns = [/Devu_.*aarch64\.dmg$/, /Devu_aarch64\.app\.tar\.gz$/]
+            const asset = findAsset(patterns)
+            if (asset) {
+              downloadUrl = asset.browser_download_url
+            }
+          } else if (arch === 'x64') {
+            const patterns = [/Devu_.*x64\.dmg$/, /Devu_x64\.app\.tar\.gz$/]
+            const asset = findAsset(patterns)
+            if (asset) {
+              downloadUrl = asset.browser_download_url
+            }
+          }
+        } else if (os === 'linux') {
+          // Linux: .deb, .rpm, .AppImage
+          if (arch === 'amd64' || arch === 'x64') {
+            // amd64 and x64 often map to the same for Linux
+            const patterns = [/Devu_.*amd64\.deb$/, /Devu-.*x86_64\.rpm$/, /Devu_.*amd64\.AppImage$/]
+            const asset = findAsset(patterns)
+            if (asset) {
+              downloadUrl = asset.browser_download_url
+            }
+          } else if (arch === 'aarch64') {
+            const patterns = [/Devu_.*aarch64\.deb$/, /Devu-.*aarch64\.rpm$/, /Devu_.*aarch64\.AppImage$/]
+            const asset = findAsset(patterns)
+            if (asset) {
+              downloadUrl = asset.browser_download_url
+            }
+          }
+        }
+
+        return downloadUrl
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const downloadCta = document.getElementById('main-download-cta')
+        const downloadCtaLabel = downloadCta.querySelector('span')
+        const releaseVersion = document.getElementById('release-version')
+        const moreDownloadOptions = document.getElementById('more-download-options')
+        const moreDownloadOptionsDropdownTrigger = moreDownloadOptions.querySelector('button')
+        const moreDownloadOptionsDropdown = moreDownloadOptions.querySelector('ul')
+        const helpNotice = document.getElementById('help-notice')
+
+        const release = await fetchRelease()
+
+        if (release) {
+          releaseVersion.textContent = release.tag_name
+
+          const osAndArch = getOSAndArch()
+          if (osAndArch) {
+            const { os, arch } = osAndArch
+            const downloadLink = getMainDownloadCTAUrl(release, os, arch)
+
+            if (downloadLink) {
+              downloadCta.href = downloadLink
+              downloadCtaLabel.textContent = `${os === 'macos' ? 'macOS' : os.charAt(0).toUpperCase() + os.slice(1)} (${arch})`
+            } else {
+              downloadCta.style.display = 'none'
+              moreDownloadOptionsDropdownTrigger.textContent = 'Choose Platforms'
+            }
+          } else {
+            downloadCta.style.display = 'none'
+            moreDownloadOptionsDropdownTrigger.textContent = 'Choose Platforms'
+          }
+
+          // Populate "Other Platforms" dropdown
+          moreDownloadOptionsDropdown.innerHTML = '' // Clear existing
+          const allAssets = release.assets.filter(
+            (asset) =>
+              !asset.browser_download_url.endsWith('.sig') &&
+              !asset.browser_download_url.includes('-debug') &&
+              !asset.browser_download_url.endsWith('/latest.json'),
+          )
+
+          const platformMap = {
+            'app.tar.gz': 'macOS Tarball',
+            dmg: 'macOS',
+            exe: 'Windows Installer',
+            msi: 'Windows MSI',
+            deb: 'Linux Debian',
+            rpm: 'Linux RPM',
+            AppImage: 'Linux AppImage',
+          }
+
+          const archMap = {
+            x64: 'x64',
+            amd64: 'amd64',
+            aarch64: 'ARM64',
+            x86_64: 'x86_64',
+          }
+
+          const downloadAssets = []
+          allAssets.forEach((asset) => {
+            const url = asset.browser_download_url
+            let platform = 'Unknown'
+            let archDisplay = ''
+
+            for (const key in platformMap) {
+              if (url.includes(key)) {
+                platform = platformMap[key]
+                break
+              }
+            }
+
+            for (const key in archMap) {
+              if (url.includes(key)) {
+                archDisplay = ` (${archMap[key]})`
+                break
+              }
+            }
+
+            downloadAssets.push({
+              url,
+              textContent: `${platform}${archDisplay}`,
+            })
+          })
+
+          downloadAssets.sort((a, b) => a.textContent.localeCompare(b.textContent))
+          downloadAssets.forEach(({ url, textContent }) => {
+            const listItem = document.createElement('li')
+            const link = document.createElement('a')
+            link.href = url
+            link.textContent = textContent
+            link.target = '_blank'
+            link.className = 'block px-8 py-2 hover:bg-neutral-300/50 dark:hover:bg-neutral-700/50'
+            listItem.appendChild(link)
+            moreDownloadOptionsDropdown.appendChild(listItem)
+          })
+        } else {
+          downloadCta.href = 'https://github.com/Hrdtr/devu/releases' // Fallback to releases page
+          downloadCtaLabel.textContent = 'Visit Releases Page'
+          moreDownloadOptions.style.display = 'none'
+          helpNotice.style.display = 'none'
+        }
+      })
+    </script>
+  </body>
+</html>
