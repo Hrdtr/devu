@@ -90,8 +90,11 @@ function downloadAndInstallUpdate() {
     return
   }
   downloadAndInstall()
-    .then(relaunch)
-    .catch(toast.error)
+    .then(() => relaunch())
+    .catch((error) => {
+      console.error('Update failed:', error)
+      toast.error(error?.message || 'Update failed. Please try again.')
+    })
 }
 </script>
 
