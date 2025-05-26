@@ -12,7 +12,7 @@ export default antfu({
   ],
 }, {
   rules: {
-    'no-console': ['error', { allow: ['error', 'info', 'warn'] }],
+    'no-console': ['error', { allow: ['error', 'info', 'trace', 'warn'] }],
     'vue/max-attributes-per-line': ['error', { singleline: { max: 3 }, multiline: { max: 1 } }],
   },
 })

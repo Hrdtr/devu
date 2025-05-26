@@ -1,19 +1,25 @@
 import type { Update } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check as $check } from '@tauri-apps/plugin-updater'
-import { createSharedComposable } from '@vueuse/core'
+import { createGlobalState } from '@vueuse/core'
 import { onMounted, ref } from 'vue'
 
-export const useUpdater = createSharedComposable(() => {
+const useUpdaterData = createGlobalState(() => {
   const pending = ref(false)
   const data = ref<Update | null>(null)
   const error = ref<Error | null>(null)
+
+  return { pending, data, error }
+})
+
+export function useUpdater() {
+  const { pending, data, error } = useUpdaterData()
 
   const downloaded = ref<number | undefined>()
   const contentLength = ref<number | undefined>()
 
   const check = async () => {
-    if (import.meta.env.DEV) {
+    if (pending.value || import.meta.env.DEV) {
       return
     }
     pending.value = true
@@ -83,4 +89,4 @@ export const useUpdater = createSharedComposable(() => {
     downloadAndInstall,
     relaunch,
   }
-})
+}

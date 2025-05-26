@@ -9,6 +9,6 @@ export default antfu({
   ],
 }, {
   rules: {
-    'no-console': ['error', { allow: ['error', 'info', 'warn'] }],
+    'no-console': ['error', { allow: ['error', 'info', 'trace', 'warn'] }],
   },
 })

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { CloudDownload, LoaderCircle, Search, SquarePen } from 'lucide-vue-next'
-import { computed, useTemplateRef } from 'vue'
+import { CloudDownload, LoaderCircle, Search, Settings, SquarePen } from 'lucide-vue-next'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+import { SettingsDialog } from '@/components/settings'
 import { SidebarMainNavigation, SidebarMainNavigationTab } from '@/components/sidebar'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -96,6 +97,8 @@ function downloadAndInstallUpdate() {
       toast.error(error?.message || 'Update failed. Please try again.')
     })
 }
+
+const settingsDialogOpen = ref(false)
 </script>
 
 <template>
@@ -129,6 +132,18 @@ function downloadAndInstallUpdate() {
                 Tap to install.
               </p>
             </template>
+          </TooltipContent>
+        </Tooltip>
+
+        <SettingsDialog v-model:open="settingsDialogOpen" />
+        <Tooltip :delay-duration="300">
+          <TooltipTrigger as-child>
+            <Button variant="ghost" class="size-10 !p-2" @click="settingsDialogOpen = true">
+              <Settings class="size-[90%]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" align="center">
+            Preferences
           </TooltipContent>
         </Tooltip>
       </div>

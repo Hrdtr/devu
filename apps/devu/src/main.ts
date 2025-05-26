@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { codePlaygrounds } from '@/composables/use-code-playground'
+import { useSettingsGeneral } from '@/composables/use-settings-general'
 import App from './App.vue'
 
 const router = createRouter({
@@ -28,6 +29,19 @@ const router = createRouter({
       component: () => import(`./pages/playground/${playground.id}.vue`),
     })),
   ],
+})
+
+let isFirstNavigation = true
+router.beforeEach((to, _from, next) => {
+  if (isFirstNavigation) {
+    isFirstNavigation = false
+    const { defaultView } = useSettingsGeneral()
+    if (defaultView.value !== to.path) {
+      return next(defaultView.value)
+    }
+  }
+
+  return next()
 })
 
 createApp(App).use(router).mount('#app')

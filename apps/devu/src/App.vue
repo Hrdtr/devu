@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { debouncedRef, useColorMode, useScroll } from '@vueuse/core'
+import { debouncedRef, useColorMode, useCssVar, useScroll } from '@vueuse/core'
 import { ChevronRight, MessageCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -14,6 +14,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { useLLMChatState } from '@/composables/use-llm-chat-state'
 import { useMainElementRef } from '@/composables/use-main-element-ref'
 import { usePageMeta } from '@/composables/use-page-meta'
+import { useSettingsAppearance } from './composables/use-settings-appearance'
 
 const route = useRoute()
 
@@ -23,9 +24,28 @@ const title = debouncedRef($title, 200)
 const { store, system } = useColorMode()
 const isDarkMode = computed(() => store.value === 'auto' ? system.value : store.value)
 watch(isDarkMode, (value) => {
-  document.documentElement.classList[value === 'dark' ? 'add' : 'remove']('dark')
-  document.documentElement.classList[value === 'light' ? 'add' : 'remove']('light')
-})
+  requestAnimationFrame(() => {
+    document.documentElement.dataset.theme = value
+    document.documentElement.classList[value === 'dark' ? 'add' : 'remove']('dark')
+    document.documentElement.classList[value === 'light' ? 'add' : 'remove']('light')
+  })
+}, { immediate: true })
+
+const { scale, motion } = useSettingsAppearance()
+const cssVar = useCssVar('--root-font-size', document.documentElement, { initialValue: '14px' })
+watch(scale, (value) => {
+  requestAnimationFrame(() => {
+    cssVar.value = `${(value * 14)}px`
+  })
+}, { immediate: true })
+watch(motion, (value) => {
+  document.documentElement.dataset.motion = value
+  const shouldReduce
+    = motion.value === 'reduced' || (motion.value === 'system' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  requestAnimationFrame(() => {
+    document.documentElement.classList.toggle('motion-disabled', shouldReduce)
+  })
+}, { immediate: true })
 
 const sidebarExpanded = ref<boolean>()
 const mainElementRef = useMainElementRef()

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Virtualizer } from '@tanstack/vue-virtual'
 import type { ApiRouteOutput } from '@/composables/use-api'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { useClipboardItems, useLocalStorage, useScroll, watchDebounced } from '@vueuse/core'
 import hljs from 'highlight.js'
 import { ArrowUp, Check, ChevronDown, Cog, Copy, History, Pencil, RotateCcw, Square, Trash, X } from 'lucide-vue-next'
@@ -458,12 +459,12 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
           coding tasks, documentation, and more.
         </p>
         <div class="inline-flex items-center gap-2">
-          <Button variant="link" class="p-0 text-foreground/80 font-normal">
-            Donate
+          <Button variant="link" class="p-0 text-foreground/80 font-normal cursor-pointer" @click="openUrl('https://github.com/Hrdtr/devu')">
+            Source Code
           </Button>
           <span role="separator">·</span>
-          <Button variant="link" class="p-0 text-foreground/80 font-normal">
-            Source Code
+          <Button variant="link" class="p-0 text-foreground/80 font-normal cursor-pointer" @click="openUrl('https://github.com/sponsors/Hrdtr')">
+            Sponsor
           </Button>
         </div>
       </div>
