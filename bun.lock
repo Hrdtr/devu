@@ -65,7 +65,7 @@
         "clsx": "^2.1.1",
         "codemirror-lang-perl": "^0.1.5",
         "highlight.js": "^11.11.1",
-        "livecodes": "^0.10.0",
+        "livecodes": "^0.11.0",
         "lucide-vue-next": "^0.503.0",
         "marked": "^15.0.12",
         "marked-highlight": "^2.2.1",
@@ -1208,7 +1208,7 @@
 
     "listr2": ["listr2@8.3.3", "", { "dependencies": { "cli-truncate": "^4.0.0", "colorette": "^2.0.20", "eventemitter3": "^5.0.1", "log-update": "^6.1.0", "rfdc": "^1.4.1", "wrap-ansi": "^9.0.0" } }, "sha512-LWzX2KsqcB1wqQ4AHgYb4RsDXauQiqhjLk+6hjbaeHG4zpjjVAB6wC/gz6X0l+Du1cN3pUB5ZlrvTbhGSNnUQQ=="],
 
-    "livecodes": ["livecodes@0.10.0", "", {}, "sha512-ug8ocy3qp6Gk7Ss1518tg5+7z5YolRQEN5UozS0gzXHEXQQCa5ZwP41aGt3g6xcPw+K7aupI7O43AsC5wlPpUQ=="],
+    "livecodes": ["livecodes@0.11.1", "", {}, "sha512-v+TF4pD4wVk+7jYV7WD+PGMxU/zWlATZ80Y7ze6gAgPCJMdWNwbz5Y16+BSbwmfPjFeyMTSGWSYuiCEwEBkSzw=="],
 
     "local-pkg": ["local-pkg@1.1.1", "", { "dependencies": { "mlly": "^1.7.4", "pkg-types": "^2.0.1", "quansync": "^0.2.8" } }, "sha512-WunYko2W1NcdfAFpuLUoucsgULmgDBRkdxHxWQ7mK0cQqwPiy8E1enjuRBrhLtZkB5iScJ1XIPdhVEFK8aOLSg=="],
 

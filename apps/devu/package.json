@@ -55,7 +55,7 @@
     "clsx": "^2.1.1",
     "codemirror-lang-perl": "^0.1.5",
     "highlight.js": "^11.11.1",
-    "livecodes": "^0.10.0",
+    "livecodes": "^0.11.0",
     "lucide-vue-next": "^0.503.0",
     "marked": "^15.0.12",
     "marked-highlight": "^2.2.1",
