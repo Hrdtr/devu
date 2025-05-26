@@ -160,8 +160,8 @@
   background: transparent;
 }
 
-.motion-disabled *, 
-.motion-disabled *::before, 
+.motion-disabled *,
+.motion-disabled *::before,
 .motion-disabled *::after {
   animation: none !important;
   transition: none !important;

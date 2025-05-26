@@ -15,7 +15,7 @@
       src="https://plausible.pvt.hrdtr.dev/js/script.file-downloads.outbound-links.tagged-events.js"
     ></script>
     <style>
-      /* Source: https://play.tailwindcss.com/SKZzHTc5mF */
+      /* Source: https://play.tailwindcss.com/sIMRki88Cg */
       /*! tailwindcss v4.1.7 | MIT License | https://tailwindcss.com */
       @layer properties;
       @layer theme, base, components, utilities;
@@ -694,6 +694,17 @@
           }
         }
       }
+      :root,
+      body {
+        background-color: var(--color-white);
+        color: var(--color-neutral-800);
+        @media (prefers-color-scheme: dark) {
+          background-color: var(--color-neutral-900);
+        }
+        @media (prefers-color-scheme: dark) {
+          color: var(--color-neutral-100);
+        }
+      }
       @property --tw-translate-x {
         syntax: '*';
         inherits: false;
@@ -737,7 +748,7 @@
   </head>
   <body>
     <div
-      class="min-h-dvh w-full bg-white px-8 py-40 text-neutral-800 selection:bg-teal-200 dark:bg-neutral-900 dark:text-neutral-100 dark:selection:bg-teal-800"
+      class="min-h-dvh w-full px-8 py-40 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-100 selection:bg-teal-200 dark:selection:bg-teal-800"
     >
       <div
         class="relative mx-auto mb-8 flex w-full max-w-screen-md flex-col items-center justify-center gap-8 md:flex-row"
