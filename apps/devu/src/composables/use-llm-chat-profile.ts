@@ -1,14 +1,19 @@
 import type { ApiRouteInput, ApiRouteOutput } from './use-api'
+import { createGlobalState } from '@vueuse/core'
 import { onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 
+export const useLLMChatProfileData = createGlobalState(() => {
+  const profileState = ref<'idle' | 'loading' | 'pending'>('idle')
+  const profiles = ref<ApiRouteOutput['llmChat']['profile']['list']['data']>([])
+
+  return { profileState, profiles }
+})
+
 export function useLLMChatProfile() {
   const { client, safe } = useApi()
-
-  const profileState = ref<'idle' | 'loading' | 'pending'>('idle')
-
-  const profiles = ref<ApiRouteOutput['llmChat']['profile']['list']['data']>([])
+  const { profileState, profiles } = useLLMChatProfileData()
 
   const loadProfiles = async () => {
     if (profileState.value !== 'idle') {

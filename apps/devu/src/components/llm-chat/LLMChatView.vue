@@ -779,7 +779,12 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                                     <LLMChatProfileForm
                                       :update="profile"
                                       class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
-                                      @updated="updateProfileDialogOpenForId = undefined"
+                                      @updated="(updatedProfile) => {
+                                        if (profileSelected && profileSelected.id === updatedProfile.id) {
+                                          profileSelected = updatedProfile
+                                        }
+                                        updateProfileDialogOpenForId = undefined
+                                      }"
                                     />
                                   </div>
                                 </ResponsiveDialogContent>

@@ -1,18 +1,23 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { ApiRouteInput, ApiRouteOutput } from './use-api'
+import { createGlobalState } from '@vueuse/core'
 import { computed, onMounted, ref, toValue, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 
-export function useCodeSnippet({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
-  const { client, safe } = useApi()
-
+export const useCodeSnippetData = createGlobalState(() => {
   const codeSnippetState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
-
   const codeSnippets = ref<ApiRouteOutput['codeSnippet']['list']>({
     data: [],
     nextCursor: null,
   })
+
+  return { codeSnippetState, codeSnippets }
+})
+
+export function useCodeSnippet({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+  const { client, safe } = useApi()
+  const { codeSnippetState, codeSnippets } = useCodeSnippetData()
 
   const loadCodeSnippets = async () => {
     if (codeSnippetState.value !== 'idle') {

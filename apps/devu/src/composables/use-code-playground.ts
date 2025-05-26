@@ -1,4 +1,5 @@
 import type { MaybeRefOrGetter } from 'vue'
+import { createGlobalState } from '@vueuse/core'
 import { useFilter } from 'reka-ui'
 import { onMounted, ref, toValue, watch } from 'vue'
 
@@ -129,13 +130,17 @@ const $codePlaygrounds: CodePlayground[] = [
 
 export const codePlaygrounds = $codePlaygrounds
 
-export function useCodePlayground({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
-  const { contains } = useFilter({ sensitivity: 'base' })
-
+export const useCodePlaygroundData = createGlobalState(() => {
   const playgroundState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
-
   const allCodePlaygrounds = ref<CodePlayground[]>([])
   const codePlaygrounds = ref<CodePlayground[]>([])
+
+  return { playgroundState, allCodePlaygrounds, codePlaygrounds }
+})
+
+export function useCodePlayground({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+  const { contains } = useFilter({ sensitivity: 'base' })
+  const { playgroundState, allCodePlaygrounds, codePlaygrounds } = useCodePlaygroundData()
 
   const loadCodePlaygrounds = async () => {
     if (playgroundState.value !== 'idle') {

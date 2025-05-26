@@ -1,18 +1,23 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { ApiRouteInput, ApiRouteOutput } from './use-api'
+import { createGlobalState } from '@vueuse/core'
 import { computed, onMounted, ref, toValue, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { useApi } from './use-api'
 
-export function useLLMChat({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
-  const { client, safe } = useApi()
-
+export const useLLMChatData = createGlobalState(() => {
   const chatState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
-
   const chats = ref<ApiRouteOutput['llmChat']['list']>({
     data: [],
     nextCursor: null,
   })
+
+  return { chatState, chats }
+})
+
+export function useLLMChat({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+  const { client, safe } = useApi()
+  const { chatState, chats } = useLLMChatData()
 
   const loadChats = async () => {
     if (chatState.value !== 'idle') {
