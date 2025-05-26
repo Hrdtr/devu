@@ -21,14 +21,20 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useLLMChatState } from '@/composables/use-llm-chat-state'
 import { useSidebarSearchKeyword } from '@/composables/use-sidebar-search-keyword'
 import { useUpdater } from '@/composables/use-updater'
+import { defineShortcuts } from '@/utils/define-shortcuts'
 
 const route = useRoute()
 const router = useRouter()
 
 const search = useSidebarSearchKeyword()
 
+const searchInput = useTemplateRef('searchInputRef')
 const sidebarHeader = useTemplateRef('sidebarHeaderRef')
 const sidebarGroupHeader = useTemplateRef('sidebarGroupHeaderRef')
+
+defineShortcuts({
+  meta_f: () => searchInput.value?.$el?.focus(),
+})
 
 const activeView = computed({
   get: () => {
@@ -159,6 +165,7 @@ const settingsDialogOpen = ref(false)
               </Label>
               <SidebarInput
                 id="search"
+                ref="searchInputRef"
                 v-model="search"
                 placeholder="Search..."
                 autocorrect="off"
