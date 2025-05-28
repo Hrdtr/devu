@@ -58,13 +58,13 @@ const showCompiledInnerTabs = computed(() => {
       >
         <div class="bg-muted">
           <TabsList class="rounded-none">
-            <TabsTrigger v-if="props.compiled.markup" value="markup" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+            <TabsTrigger v-if="props.compiled.markup" value="markup" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
               {{ typeof props.compiled.markup === 'string' ? props.compiled.markup : 'Markup' }}
             </TabsTrigger>
-            <TabsTrigger v-if="props.compiled.style" value="style" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+            <TabsTrigger v-if="props.compiled.style" value="style" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
               {{ typeof props.compiled.style === 'string' ? props.compiled.style : 'Style' }}
             </TabsTrigger>
-            <TabsTrigger v-if="props.compiled.script" value="script" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+            <TabsTrigger v-if="props.compiled.script" value="script" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
               {{ typeof props.compiled.script === 'string' ? props.compiled.script : 'Script' }}
             </TabsTrigger>
           </TabsList>
@@ -88,13 +88,13 @@ const showCompiledInnerTabs = computed(() => {
   >
     <div class="bg-muted">
       <TabsList class="rounded-none">
-        <TabsTrigger v-if="props.document" value="document" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+        <TabsTrigger v-if="props.document" value="document" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
           {{ typeof props.document === 'string' ? props.document : 'Result' }}
         </TabsTrigger>
-        <TabsTrigger v-if="props.console" value="console" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+        <TabsTrigger v-if="props.console" value="console" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
           {{ typeof props.console === 'string' ? props.console : 'Console' }}
         </TabsTrigger>
-        <TabsTrigger v-if="props.compiled" value="compiled" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+        <TabsTrigger v-if="props.compiled" value="compiled" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
           {{ typeof props.compiled === 'string' ? props.compiled : 'Compiled' }}
         </TabsTrigger>
       </TabsList>
@@ -127,13 +127,13 @@ const showCompiledInnerTabs = computed(() => {
       >
         <div class="bg-muted">
           <TabsList class="rounded-none">
-            <TabsTrigger v-if="props.compiled.markup" value="markup" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+            <TabsTrigger v-if="props.compiled.markup" value="markup" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
               {{ typeof props.compiled.markup === 'string' ? props.compiled.markup : 'Markup' }}
             </TabsTrigger>
-            <TabsTrigger v-if="props.compiled.style" value="style" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+            <TabsTrigger v-if="props.compiled.style" value="style" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
               {{ typeof props.compiled.style === 'string' ? props.compiled.style : 'Style' }}
             </TabsTrigger>
-            <TabsTrigger v-if="props.compiled.script" value="script" class="data-[state=active]:!bg-muted data-[state=active]:!text-foreground">
+            <TabsTrigger v-if="props.compiled.script" value="script" class="data-[state=active]:bg-muted data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-foreground">
               {{ typeof props.compiled.script === 'string' ? props.compiled.script : 'Script' }}
             </TabsTrigger>
           </TabsList>

@@ -145,7 +145,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-accent; /* You can adjust this color for the thumb */
+  @apply bg-foreground/10; /* You can adjust this color for the thumb */
   border-radius: 9999px; /* Match the border-radius of the thumb */
   background-clip: content-box; /* Ensure the thumb doesn't overlap the track */
   border: 2px solid transparent; /* Ensure the thumb doesn't overlap the track */
@@ -153,7 +153,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-accent; /* You can adjust this color for the hover state */
+  @apply bg-foreground/10; /* You can adjust this color for the hover state */
 }
 
 ::-webkit-scrollbar-corner {

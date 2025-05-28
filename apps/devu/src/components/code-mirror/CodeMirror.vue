@@ -8,9 +8,10 @@ import type { Language } from './languages'
 import { StreamLanguage } from '@codemirror/language'
 import { Compartment, EditorSelection, EditorState, StateEffect } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
+import { useColorMode } from '@vueuse/core'
 import { computed, nextTick, onUnmounted, ref, shallowRef, useSlots, useTemplateRef, watch } from 'vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue?: string
   /**
    * CodeMirror Language
@@ -132,7 +133,9 @@ const props = defineProps<{
    * Using tag
    */
   tag?: string
-}>()
+}>(), {
+  dark: undefined,
+})
 
 const emit = defineEmits<{
   'update:modelValue': [string]
@@ -276,6 +279,9 @@ async function loadBasicSetupExtensions(options: { defaultKeymap: boolean }) {
   return extensions
 }
 
+const { store, system } = useColorMode()
+const isDarkMode = computed(() => (store.value === 'auto' ? system.value : store.value) === 'dark')
+
 async function loadExtensions() {
   const language = new Compartment()
   const tabSize = new Compartment()
@@ -346,8 +352,8 @@ async function loadExtensions() {
       emit('update', update)
     }),
     props.theme
-      ? EditorView.theme(props.theme, { dark: props.dark })
-      : await import('./theme').then(m => m.default),
+      ? EditorView.theme(props.theme, { dark: props.dark || isDarkMode.value })
+      : await import('./theme').then(m => props.dark || isDarkMode.value ? m.dark : m.light),
 
     ...[
       // Toggle line wrapping
@@ -391,7 +397,14 @@ async function loadExtensions() {
   return extensions
 }
 
-watch([() => props.extensions, () => props.lang], async () => {
+watch([
+  () => props.extensions,
+  () => props.lang,
+  // Theme specific
+  isDarkMode,
+  () => props.theme,
+  () => props.dark,
+], async () => {
   const exts = await loadExtensions()
   view.value?.dispatch({ effects: StateEffect.reconfigure.of(exts) })
 }, { immediate: true })

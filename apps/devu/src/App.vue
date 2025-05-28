@@ -22,12 +22,12 @@ const { title: $title } = usePageMeta()
 const title = debouncedRef($title, 200)
 
 const { store, system } = useColorMode()
-const isDarkMode = computed(() => store.value === 'auto' ? system.value : store.value)
+const isDarkMode = computed(() => (store.value === 'auto' ? system.value : store.value) === 'dark')
 watch(isDarkMode, (value) => {
   requestAnimationFrame(() => {
-    document.documentElement.dataset.theme = value
-    document.documentElement.classList[value === 'dark' ? 'add' : 'remove']('dark')
-    document.documentElement.classList[value === 'light' ? 'add' : 'remove']('light')
+    document.documentElement.dataset.theme = value ? 'dark' : 'light'
+    document.documentElement.classList[value ? 'add' : 'remove']('dark')
+    document.documentElement.classList[value ? 'remove' : 'add']('light')
   })
 }, { immediate: true })
 

@@ -3,120 +3,150 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 
-// GitHub Dark theme color definitions
-// const base00 = 'var(--background)' // Background
-const base00 = 'color-mix(in oklab, var(--input) 30%, transparent)' // Background
-const base01 = 'var(--foreground)' // Foreground
-const base02 = '#003d73' // Selection and Selection Match
-const base03 = '#8b949e' // Comment and Bracket color
-const base04 = '#c9d1d9' // Caret color (reusing foreground for consistency)
-const base05 = '#7ee787' // TagName, Name, Quote
-const base06 = '#d2a8ff' // ClassName, PropertyName, Heading, Strong, Emphasis
-const base07 = '#79c0ff' // VariableName, AttributeName, Number, Operator
-const base08 = '#ff7b72' // Keyword, TypeName, TypeOperator
-const base09 = '#a5d6ff' // String, Meta, Regexp
-const base0A = '#ffdcd7' // Deleted text color
-const base0B = '#ffeef0' // Deleted background color
-const base0C = '#ffab70' // Atom, Bool, Special VariableName
-const invalid = '#f97583' // Invalid color
+const lightBase = {
+  background: 'color-mix(in oklab, var(--input) 30%, transparent)', // Background (base: '#ffffff')
+  text: 'var(--foreground)', // Foreground (base: '#0f172a')
+  selection: '#cbd5e1', // Selection
+  comment: '#64748b', // Comment, Bracket
+  caret: '#1e293b', // Caret
+  tag: '#065f46', // TagName, Name, Quote
+  class: '#7c3aed', // ClassName, PropertyName, Heading, Emphasis
+  variable: '#2563eb', // Variable, AttrName, Number, Operator
+  keyword: '#dc2626', // Keyword, Type
+  string: '#15803d', // String, Meta, Regexp
+  atom: '#b45309', // Atom, Bool, Special
+  invalid: '#b91c1c', // Invalid
+  gutterBackground: 'var(--background)', // Gutter background (base: '#f1f5f9')
+  gutterText: 'var(--foreground)', // Gutter foreground (base: '#1e293b')
+  deletedBackground: '#fee2e2', // Deleted background
+  deletedText: '#7f1d1d', // Deleted text
+  tooltipBackground: 'var(--card)', // Tooltip background (base: '#f1f5f9')
+  tooltipText: 'var(--card-foreground)', // Tooltip foreground (base: '#1e293b')
+}
 
-const highlightBackground = 'color-mix(in oklab, var(--foreground) 2.5%, transparent)' // Line highlight with some opacity
-const tooltipBackground = 'var(--card)'
-const tooltipColor = 'var(--card-foreground)'
-const cursor = base04 // Caret color
-const selection = base02 // Selection color
+const darkBase = {
+  background: 'color-mix(in oklab, var(--input) 30%, transparent)', // Background (base: '#0d1117')
+  text: 'var(--foreground)', // Foreground (base: '#c9d1d9')
+  selection: '#003d73', // Selection
+  comment: '#8b949e', // Comment, Bracket
+  caret: '#c9d1d9', // Caret
+  tag: '#7ee787', // TagName, Name, Quote
+  class: '#d2a8ff', // ClassName, PropertyName, Heading, Emphasis
+  variable: '#79c0ff', // Variable, AttrName, Number, Operator
+  keyword: '#ff7b72', // Keyword, Type
+  string: '#a5d6ff', // String, Meta, Regexp
+  atom: '#ffab70', // Atom, Bool, Special
+  invalid: '#f97583', // Invalid
+  gutterBackground: 'var(--background)', // Gutter background (base: '#161b22')
+  gutterText: 'var(--foreground)', // Gutter foreground (base: '#c9d1d9')
+  deletedBackground: '#ffdcd7', // Deleted background
+  deletedText: '#ffeef0', // Deleted text
+  tooltipBackground: 'var(--card)', // Tooltip background (base: '#161b22')
+  tooltipText: 'var(--card-foreground)', // Tooltip foreground (base: '#c9d1d9')
+}
 
-// Define the editor theme styles for GitHub Dark.
-export const theme = EditorView.theme(
-  {
-    '&': {
-      color: base01,
-      backgroundColor: base00,
-    },
-    '.cm-content': {
-      caretColor: cursor,
-      fontSize: 'calc(var(--root-font-size, 16px) - 2px)',
-      lineHeight: 'calc(var(--root-font-size, 16px) + 6px)',
-    },
-    '.cm-cursor, .cm-dropCursor': {
-      borderLeftColor: cursor,
-    },
-    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      {
-        backgroundColor: selection,
+function createTheme(options?: { dark: boolean }) {
+  const base = options?.dark ? darkBase : lightBase
+
+  return EditorView.theme(
+    {
+      '&': {
+        color: base.text,
+        backgroundColor: base.background,
       },
-    '.cm-searchMatch': {
-      backgroundColor: base02, // Use the selection color for search matches
-      color: base01, // Ensure the text color contrasts with the background
-      outline: `1px solid ${base04}`, // Highlight with a subtle outline
+      '.cm-content': {
+        caretColor: base.caret,
+        fontSize: 'calc(var(--root-font-size, 16px) - 2px)',
+        lineHeight: 'calc(var(--root-font-size, 16px) + 6px)',
+      },
+      '.cm-cursor, .cm-dropCursor': {
+        borderLeftColor: base.caret,
+      },
+      '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
+        {
+          backgroundColor: base.selection,
+        },
+      '.cm-searchMatch': {
+        backgroundColor: base.background, // Use the selection color for search matches
+        color: base.text, // Ensure the text color contrasts with the background
+        outline: `1px solid ${base.caret}`, // Highlight with a subtle outline
+      },
+      '.cm-searchMatch.cm-searchMatch-selected': {
+        backgroundColor: base.text, // Use a distinct color for the selected search match
+        color: base.background, // Invert color for high visibility
+        outline: `1px solid ${base.caret}`,
+      },
+      '.cm-panels': {
+        backgroundColor: base.background, // Use the main background color for consistency
+        color: base.text,
+      },
+      '.cm-panels.cm-panels-top': {
+        borderBottom: '2px solid black',
+      },
+      '.cm-panels.cm-panels-bottom': {
+        borderTop: '2px solid black',
+      },
+      '.cm-activeLine': {
+        backgroundColor: `color-mix(in oklab, ${base.text} 2.5%, transparent)`,
+      },
+      '.cm-gutters': {
+        backgroundColor: base.gutterBackground,
+        color: base.gutterText,
+        fontSize: 'calc(var(--root-font-size, 16px) - 2px)',
+        borderRight: `1px solid color-mix(in oklab, ${base.text} 2.5%, transparent)`,
+      },
+      '.cm-gutterElement': {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'end',
+        alignItems: 'center',
+      },
+      '.cm-activeLineGutter': {
+        backgroundColor: `color-mix(in oklab, ${base.text} 2.5%, transparent)`,
+      },
+      '.cm-tooltip': {
+        backgroundColor: base.tooltipBackground,
+        color: base.tooltipText,
+      },
+      '.cm-foldPlaceholder': {
+        backgroundColor: 'transparent',
+        borderColor: 'transparent',
+      },
     },
-    '.cm-searchMatch.cm-searchMatch-selected': {
-      backgroundColor: base08, // Use a distinct color for the selected search match
-      color: base00, // Invert color for high visibility
-      outline: `1px solid ${base04}`,
-    },
-    '.cm-panels': {
-      backgroundColor: base00, // Use the main background color for consistency
-      color: base01,
-    },
-    '.cm-panels.cm-panels-top': {
-      borderBottom: '2px solid black',
-    },
-    '.cm-panels.cm-panels-bottom': {
-      borderTop: '2px solid black',
-    },
-    '.cm-activeLine': {
-      backgroundColor: highlightBackground,
-    },
-    '.cm-gutters': {
-      backgroundColor: 'var(--background)', // Gutter background using the main background
-      color: base03, // Use comment color for gutter foreground
-      fontSize: 'calc(var(--root-font-size, 16px) - 2px)',
-    },
-    '.cm-gutterElement': {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'end',
-      alignItems: 'center',
-    },
-    '.cm-activeLineGutter': {
-      backgroundColor: highlightBackground,
-    },
-    '.cm-tooltip': {
-      backgroundColor: tooltipBackground,
-      color: tooltipColor,
-    },
-    '.cm-foldPlaceholder': {
-      backgroundColor: 'transparent',
-      borderColor: 'transparent',
-    },
-  },
-  { dark: true },
-)
+    { dark: options?.dark || false },
+  )
+}
 
-// Define the highlighting style for code in the GitHub Dark theme.
-export const themeSyntaxHighlighting = HighlightStyle.define([
-  { tag: [t.standard(t.tagName), t.tagName], color: base05 },
-  { tag: [t.comment, t.bracket], color: base03 },
-  { tag: [t.className, t.propertyName], color: base06 },
-  {
-    tag: [t.variableName, t.attributeName, t.number, t.operator],
-    color: base07,
-  },
-  { tag: [t.keyword, t.typeName, t.typeOperator], color: base08 },
-  { tag: [t.string, t.meta, t.regexp], color: base09 },
-  { tag: [t.name, t.quote], color: base05 },
-  { tag: [t.heading, t.strong], color: base06, fontWeight: 'bold' },
-  { tag: [t.emphasis], color: base06, fontStyle: 'italic' },
-  { tag: [t.deleted], color: base0A, backgroundColor: base0B },
-  { tag: [t.atom, t.bool, t.special(t.variableName)], color: base0C },
-  { tag: t.link, textDecoration: 'underline' },
-  { tag: t.strikethrough, textDecoration: 'line-through' },
-  { tag: t.invalid, color: invalid },
-])
+function createThemeSyntaxHighlighting(options?: { dark: boolean }) {
+  const base = options?.dark ? darkBase : lightBase
 
-// Extension to enable the GitHub Dark theme (both the editor theme and the highlight style).
-export default [
-  theme,
-  syntaxHighlighting(themeSyntaxHighlighting),
+  return syntaxHighlighting(HighlightStyle.define([
+    { tag: [t.standard(t.tagName), t.tagName], color: base.tag },
+    { tag: [t.comment, t.bracket], color: base.comment },
+    { tag: [t.className, t.propertyName], color: base.class },
+    {
+      tag: [t.variableName, t.attributeName, t.number, t.operator],
+      color: base.variable,
+    },
+    { tag: [t.keyword, t.typeName, t.typeOperator], color: base.keyword },
+    { tag: [t.string, t.meta, t.regexp], color: base.string },
+    { tag: [t.name, t.quote], color: base.tag },
+    { tag: [t.heading, t.strong], color: base.class, fontWeight: 'bold' },
+    { tag: [t.emphasis], color: base.class, fontStyle: 'italic' },
+    { tag: [t.deleted], color: base.deletedText, backgroundColor: base.deletedBackground },
+    { tag: [t.atom, t.bool, t.special(t.variableName)], color: base.atom },
+    { tag: t.link, textDecoration: 'underline' },
+    { tag: t.strikethrough, textDecoration: 'line-through' },
+    { tag: t.invalid, color: base.invalid },
+  ]))
+}
+
+export const light = [
+  createTheme({ dark: false }),
+  createThemeSyntaxHighlighting({ dark: false }),
+] as Extension
+
+export const dark = [
+  createTheme({ dark: true }),
+  createThemeSyntaxHighlighting({ dark: true }),
 ] as Extension
