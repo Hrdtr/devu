@@ -24,7 +24,7 @@ const activeMenu = ref(data.nav.find(item => item.name === 'General') || data.na
 
 <template>
   <ResponsiveDialog v-model:open="open">
-    <ResponsiveDialogContent class="md:max-w-[700px] lg:max-w-[800px] max-h-[80vh] p-0 flex flex-col overflow-hidden">
+    <ResponsiveDialogContent class="md:max-w-[700px] lg:max-w-[800px] max-h-[80vh] p-0 flex flex-col overflow-hidden bg-sidebar">
       <ResponsiveDialogHeader class="sr-only">
         <ResponsiveDialogTitle>
           Settings
@@ -34,7 +34,7 @@ const activeMenu = ref(data.nav.find(item => item.name === 'General') || data.na
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
 
-      <SidebarProvider>
+      <SidebarProvider class="[&_.w-\(--sidebar-width\)]:will-change-[width] [&_.w-\(--sidebar-width\)]:!ease-in-out [&_.w-\(--sidebar-width\)]:!duration-400">
         <Sidebar class="!border-0">
           <SidebarContent class="pt-[28px] pb-[12px] md:p-0">
             <SidebarGroup>
@@ -43,6 +43,7 @@ const activeMenu = ref(data.nav.find(item => item.name === 'General') || data.na
                   <SidebarMenuItem v-for="item in data.nav" :key="item.name">
                     <SidebarMenuButton
                       as-child
+                      class="cursor-default data-[active=true]:!bg-primary/5 data-[active=true]:!text-primary data-[active=true]:!font-normal"
                       :is-active="activeMenu.name === item.name"
                     >
                       <a href="#" @click="activeMenu = item">
@@ -56,7 +57,8 @@ const activeMenu = ref(data.nav.find(item => item.name === 'General') || data.na
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <main class="flex h-full max-h-[80vh] flex-1 flex-col overflow-hidden">
+        <!-- h-[calc(80vh-16px-2px), -2px because the inner sidebar content container has 1px border, top border + bottom border = 2px -->
+        <main class="flex h-[calc(80vh-16px-2px)] flex-1 flex-col overflow-hidden bg-background m-[8px] rounded-[8px] shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/20">
           <header class="shrink-0 flex flex-row items-center gap-2 p-2">
             <SidebarTrigger class="w-8 h-8" />
             <p class="leading-none line-clamp-1">

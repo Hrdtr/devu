@@ -14,9 +14,10 @@
     "windows": [
       {
         "title": "Devu (Development)",
-        "width": 960,
+        "width": 1024,
         "height": 640,
         "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
         "acceptFirstMouse": true
       }
     ],

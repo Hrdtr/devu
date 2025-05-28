@@ -69,7 +69,7 @@ async function submit() {
 
     outputRef.value?.setValue(response)
     if (mainElementRef.value) {
-      mainElementRef.value.scrollTo({ top: outputRef.value?.$el.offsetTop || 0, behavior: 'smooth' })
+      mainElementRef.value.scrollTo({ top: (outputRef.value?.$el.offsetTop || 0) - 72, behavior: 'smooth' })
     }
   }
 }

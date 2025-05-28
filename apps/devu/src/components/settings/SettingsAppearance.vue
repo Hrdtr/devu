@@ -9,7 +9,7 @@ const { theme, motion, scale } = useSettingsAppearance()
   <div class="flex flex-col gap-4">
     <div class="grid grid-cols-3 gap-4 mb-4">
       <div class="col-span-2 flex flex-col gap-2">
-        <h3 class="font-semibold">
+        <h3 class="font-medium">
           Theme
         </h3>
         <p class="text-sm text-muted-foreground">
@@ -41,7 +41,7 @@ const { theme, motion, scale } = useSettingsAppearance()
 
     <div class="grid grid-cols-3 gap-4 mb-4">
       <div class="col-span-2 flex flex-col gap-2">
-        <h3 class="font-semibold">
+        <h3 class="font-medium">
           Scale
         </h3>
         <p class="text-sm text-muted-foreground">
@@ -79,7 +79,7 @@ const { theme, motion, scale } = useSettingsAppearance()
 
     <div class="grid grid-cols-3 gap-4 mb-4">
       <div class="col-span-2 flex flex-col gap-2">
-        <h3 class="font-semibold">
+        <h3 class="font-medium">
           Motion/Animation Preference
         </h3>
         <p class="text-sm text-muted-foreground">

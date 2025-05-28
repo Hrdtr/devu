@@ -115,7 +115,7 @@ const settingsDialogOpen = ref(false)
       <div data-tauri-drag-region class="pb-2 flex flex-col items-center gap-1 -mr-2">
         <Tooltip v-if="updatePending || !!updateData">
           <TooltipTrigger>
-            <Button variant="ghost" class="size-10 !p-2" @click="downloadAndInstallUpdate">
+            <Button variant="ghost" class="size-10 !p-2 text-muted-foreground" @click="downloadAndInstallUpdate">
               <LoaderCircle v-if="updatePending" class="size-[90%] animate-spin" />
               <CloudDownload v-else class="size-[90%] self-center origin-center" />
             </Button>
@@ -144,7 +144,7 @@ const settingsDialogOpen = ref(false)
         <SettingsDialog v-model:open="settingsDialogOpen" />
         <Tooltip :delay-duration="300">
           <TooltipTrigger as-child>
-            <Button variant="ghost" class="size-10 !p-2" @click="settingsDialogOpen = true">
+            <Button variant="ghost" class="size-10 !p-2 text-muted-foreground" @click="settingsDialogOpen = true">
               <Settings class="size-[90%]" />
             </Button>
           </TooltipTrigger>
@@ -214,7 +214,7 @@ const settingsDialogOpen = ref(false)
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarRail />
+      <SidebarRail class="opacity-0" />
     </div>
   </Sidebar>
 </template>

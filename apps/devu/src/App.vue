@@ -66,17 +66,22 @@ const { y: chatScrollY } = useScroll(chatScrollElementRef)
 <template>
   <Suspense>
     <RootProvider>
-      <SidebarProvider v-model:open="sidebarExpanded">
+      <SidebarProvider v-model:open="sidebarExpanded" class="[&_.w-\(--sidebar-width\)]:will-change-[width] [&_.w-\(--sidebar-width\)]:!ease-in-out [&_.w-\(--sidebar-width\)]:!duration-400">
         <AppSidebar />
 
-        <div class="w-full">
+        <div class="w-full bg-sidebar">
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel v-show="route.path !== '/'" :default-size="50">
+            <ResizablePanel
+              v-show="route.path !== '/'"
+              :default-size="50"
+              class="bg-background m-[8px] rounded-[8px] shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/20"
+              :class="chatViewVisible ? 'mr-[4px]' : ''"
+            >
               <div>
                 <header
                   data-tauri-drag-region
-                  class="sticky h-[64px] px-4 pt-[28px] backdrop-blur-lg z-10 transition-colors duration-300"
-                  :class="mainScrollY > 40 ? 'bg-sidebar/90' : 'bg-sidebar/50'"
+                  class="sticky h-[64px] -mt-[8px] px-4 pt-[28px] bg-background z-10 transition-colors duration-300"
+                  :class="mainScrollY > 40 ? 'shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/10' : 'shadow-none'"
                 >
                   <div class="w-full flex flex-row items-center justify-between gap-4">
                     <div class="w-full flex flex-row items-center gap-2 -ml-2">
@@ -117,7 +122,7 @@ const { y: chatScrollY } = useScroll(chatScrollElementRef)
                   </div>
                 </header>
 
-                <main ref="mainElementRef" class="w-full h-screen -mt-[64px] pt-[64px] overflow-y-auto @container">
+                <main ref="mainElementRef" class="w-full h-[calc(100vh-64px-8px)] overflow-y-auto @container">
                   <router-view v-slot="{ Component, route: $route }">
                     <keep-alive>
                       <component :is="Component" :key="$route.path" />
@@ -127,14 +132,19 @@ const { y: chatScrollY } = useScroll(chatScrollElementRef)
               </div>
             </ResizablePanel>
 
-            <ResizableHandle v-if="route.path !== '/' && chatViewVisible" />
+            <ResizableHandle v-if="route.path !== '/' && chatViewVisible" class="opacity-0" />
 
-            <ResizablePanel v-show="chatViewVisible" :default-size="50">
+            <ResizablePanel
+              v-show="chatViewVisible"
+              :default-size="50"
+              class="bg-background m-[8px] rounded-[8px] shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/20"
+              :class="route.path !== '/' && chatViewVisible ? 'ml-[4px]' : ''"
+            >
               <div>
                 <header
                   data-tauri-drag-region
-                  class="sticky h-[64px] px-4 pt-[28px] backdrop-blur-lg z-10 transition-colors duration-300"
-                  :class="chatScrollY > 40 ? 'bg-sidebar/90' : 'bg-sidebar/50'"
+                  class="sticky h-[64px] -mt-[8px] px-4 pt-[28px] bg-background z-10 transition-colors duration-300"
+                  :class="chatScrollY > 40 ? 'shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/10' : 'shadow-none'"
                 >
                   <div class="w-full flex flex-row items-center justify-between gap-4">
                     <div class="w-full flex flex-row items-center gap-2" :class="route.path === '/' ? '-ml-2' : ''">
@@ -177,7 +187,7 @@ const { y: chatScrollY } = useScroll(chatScrollElementRef)
                   </div>
                 </header>
 
-                <main class="w-full h-screen -mt-[64px] pt-[64px] overflow-y-auto @container">
+                <main class="w-full h-[calc(100vh-64px-8px)] overflow-y-auto @container">
                   <KeepAlive>
                     <LLMChatView :key="chatId" />
                   </KeepAlive>

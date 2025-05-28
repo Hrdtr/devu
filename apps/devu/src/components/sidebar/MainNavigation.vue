@@ -83,7 +83,7 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
           :value="option.id"
           :class="[
             sidebarMenuButtonVariants(),
-            chatId === option.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
+            chatId === option.id ? '!bg-primary/5 !text-primary' : '',
           ]"
           class="relative w-full cursor-default group/item !p-0 data-[highlighted]:bg-sidebar-accent/50 data-[highlighted]:text-sidebar-accent-foreground data-[highlighted]:[&_button]:opacity-100 data-[state=checked]:bg-sidebar-accent data-[state=checked]:text-sidebar-accent-foreground data-[state=checked]:[&_button]:opacity-100"
         >
@@ -105,7 +105,7 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
               <Button
                 variant="ghost"
                 size="icon"
-                class="absolute right-0 top-1/2 -translate-y-1/2 size-8 opacity-0 group-hover/item:opacity-100"
+                class="absolute right-0 top-1/2 -translate-y-1/2 size-8 opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100 text-sidebar-foreground"
                 @click.stop
               >
                 <EllipsisVertical />
@@ -223,7 +223,7 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
           :value="`utility:${option.id}`"
           :class="[
             sidebarMenuButtonVariants(),
-            activeView === `utility:${option.id}` ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
+            activeView === `utility:${option.id}` ? '!bg-primary/5 !text-primary' : '',
           ]"
           class="relative w-full cursor-default group/item !p-0 data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground data-[highlighted]:[&_button]:opacity-100 data-[state=checked]:bg-sidebar-accent data-[state=checked]:text-sidebar-accent-foreground data-[state=checked]:[&_button]:opacity-100"
         >
@@ -257,7 +257,7 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
           :value="`snippet:${option.id}`"
           :class="[
             sidebarMenuButtonVariants(),
-            activeView === `snippet:${option.id}` ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
+            activeView === `snippet:${option.id}` ? '!bg-primary/5 !text-primary' : '',
           ]"
           class="relative w-full cursor-default group/item !p-0 data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground data-[highlighted]:[&_button]:opacity-100 data-[state=checked]:bg-sidebar-accent data-[state=checked]:text-sidebar-accent-foreground data-[state=checked]:[&_button]:opacity-100"
         >
@@ -290,7 +290,7 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
           :value="`playground:${option.id}`"
           :class="[
             sidebarMenuButtonVariants(),
-            activeView === `playground:${option.id}` ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
+            activeView === `playground:${option.id}` ? '!bg-primary/5 !text-primary' : '',
           ]"
           class="relative w-full cursor-default group/item !p-0 data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground data-[highlighted]:[&_button]:opacity-100 data-[state=checked]:bg-sidebar-accent data-[state=checked]:text-sidebar-accent-foreground data-[state=checked]:[&_button]:opacity-100"
         >

@@ -12,6 +12,7 @@ import { titleCase } from 'scule'
 import { nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+import { NeonBorder } from '@/components/inspira'
 import { LLMChatMessageBranchSelection, LLMChatProfileForm } from '@/components/llm-chat'
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '@/components/responsive-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -372,7 +373,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-col relative">
+  <div class="w-full h-full flex flex-col relative @container">
     <Teleport v-if="activated && route.path !== '/' && !route.path.startsWith('/chats')" to="#chat-header-end">
       <div class="flex flex-row items-center">
         <Button
@@ -470,10 +471,10 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
         </div>
       </div>
     </div>
-    <ListboxRoot v-else class="flex-1 h-dvh -mt-[80px]" disabled>
+    <ListboxRoot v-else class="h-[calc(100vh-64px-8px)]" disabled>
       <ListboxContent
         ref="chatContainer"
-        class="w-full h-full overflow-y-auto pt-[80px]"
+        class="w-full h-full overflow-y-auto"
         :style="{
           paddingBottom: `${(formContainerRef?.offsetHeight || 0)}px`,
         }"
@@ -683,7 +684,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                   </template>
                 </div>
                 <p class="text-xs text-gray-500" :class="message.role === 'human' ? 'text-right' : ''">
-                  {{ titleCase(message.role) }}<span v-if="message.role === 'assistant'" class="font-semibold">&nbsp;({{ message.metadata.provider }}: {{ message.metadata.model }})</span> - {{ new Date(message.createdAt).toLocaleString() }}
+                  {{ titleCase(message.role) }}<span v-if="message.role === 'assistant'" class="font-medium">&nbsp;({{ message.metadata.provider }}: {{ message.metadata.model }})</span> - {{ new Date(message.createdAt).toLocaleString() }}
                 </p>
               </div>
             </ListboxItem>
@@ -693,180 +694,187 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
     </ListboxRoot>
     <form
       ref="formContainer"
-      class="absolute bottom-0 w-full bg-transparent"
+      class="absolute bottom-0 w-full bg-transparent @3xl:-ml-[5px]"
       :disabled="messageState !== 'idle'"
       @submit.prevent="submitMessage"
     >
-      <div class="w-full max-w-screen-md mx-auto p-3.5">
-        <div class="w-full bg-sidebar text-sidebar-foreground rounded-xl">
-          <textarea
-            v-model="messageContent"
-            class="w-full focus:outline-none px-3 pt-3"
-            placeholder="Type your message here..."
-            rows="3"
-            @keydown="handleKeyDown"
-          />
-          <div class="px-3 flex flex-row justify-between gap-4 pb-3">
-            <div class="flex flex-row gap-1">
-              <Select v-model="profileSelected" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a profile" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Profiles</SelectLabel>
-                    <SelectItem v-for="item in profiles" :key="item.id" :value="item">
-                      {{ item.name }}
-                    </SelectItem>
-                  </SelectGroup>
+      <div class="w-full max-w-screen-md mx-auto p-4">
+        <NeonBorder
+          class="w-full max-w-none h-auto -mb-2"
+          animation-type="none"
+          color1="var(--color-foreground)"
+          color2="var(--color-primary)"
+        >
+          <div class="w-full bg-sidebar text-sidebar-foreground rounded-lg shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/20">
+            <textarea
+              v-model="messageContent"
+              class="w-full focus:outline-none px-3 pt-3"
+              placeholder="Type your message here..."
+              rows="3"
+              @keydown="handleKeyDown"
+            />
+            <div class="px-3 flex flex-row justify-between gap-4 pb-3">
+              <div class="flex flex-row gap-1">
+                <Select v-model="profileSelected" required>
+                  <SelectTrigger class="max-w-40">
+                    <SelectValue placeholder="Select a profile" class="w-full !inline-block !truncate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Profiles</SelectLabel>
+                      <SelectItem v-for="item in profiles" :key="item.id" :value="item">
+                        {{ item.name }}
+                      </SelectItem>
+                    </SelectGroup>
 
-                  <SelectSeparator />
+                    <SelectSeparator />
 
-                  <SelectGroup>
-                    <ResponsiveDialog>
-                      <ResponsiveDialogTrigger as-child>
-                        <SelectItem value="manage" @select.prevent>
-                          <Cog /> Manage
-                        </SelectItem>
-                      </ResponsiveDialogTrigger>
-                      <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                        <ResponsiveDialogHeader>
-                          <ResponsiveDialogTitle>Manage Profiles</ResponsiveDialogTitle>
-                          <ResponsiveDialogDescription>
-                            Profiles are used to select the appropriate LLM model for chat, along with its specific
-                            settings.
-                          </ResponsiveDialogDescription>
-                        </ResponsiveDialogHeader>
+                    <SelectGroup>
+                      <ResponsiveDialog>
+                        <ResponsiveDialogTrigger as-child>
+                          <SelectItem value="manage" @select.prevent>
+                            <Cog /> Manage
+                          </SelectItem>
+                        </ResponsiveDialogTrigger>
+                        <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
+                          <ResponsiveDialogHeader>
+                            <ResponsiveDialogTitle>Manage Profiles</ResponsiveDialogTitle>
+                            <ResponsiveDialogDescription>
+                              Profiles are used to select the appropriate LLM model for chat, along with its specific
+                              settings.
+                            </ResponsiveDialogDescription>
+                          </ResponsiveDialogHeader>
 
-                        <div class="flex flex-col overflow-y-auto py-4">
-                          <div
-                            v-for="profile in profiles"
-                            :key="profile.id"
-                            class="flex flex-row justify-between gap-4 pb-3 last:pb-0 mb-3 last:mb-0 border-b last:border-b-0"
-                          >
-                            <div>
-                              <p class="leading-none mb-0.5 line-clamp-1">
-                                {{ profile.name }}
-                              </p>
-                              <p class="text-sm text-muted-foreground line-clamp-1">
-                                {{ profile.provider }}, {{ profile.model }}
-                              </p>
-                            </div>
-                            <div class="flex flex-row gap-1">
-                              <ResponsiveDialog
-                                :open="updateProfileDialogOpenForId === profile.id"
-                                @update:open="updateProfileDialogOpenForId = updateProfileDialogOpenForId === profile.id ? undefined : profile.id"
-                              >
-                                <ResponsiveDialogTrigger as-child>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    aria-label="Edit"
-                                  >
-                                    <Pencil />
-                                  </Button>
-                                </ResponsiveDialogTrigger>
-                                <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                                  <ResponsiveDialogHeader>
-                                    <ResponsiveDialogTitle>
-                                      Update Profile
-                                    </ResponsiveDialogTitle>
-                                    <ResponsiveDialogDescription>
-                                      Fill out the form below to update this profile.
-                                    </ResponsiveDialogDescription>
-                                  </ResponsiveDialogHeader>
+                          <div class="flex flex-col overflow-y-auto py-4">
+                            <div
+                              v-for="profile in profiles"
+                              :key="profile.id"
+                              class="flex flex-row justify-between gap-4 pb-3 last:pb-0 mb-3 last:mb-0 border-b last:border-b-0"
+                            >
+                              <div>
+                                <p class="leading-none mb-0.5 line-clamp-1">
+                                  {{ profile.name }}
+                                </p>
+                                <p class="text-sm text-muted-foreground line-clamp-1">
+                                  {{ profile.provider }}, {{ profile.model }}
+                                </p>
+                              </div>
+                              <div class="flex flex-row gap-1">
+                                <ResponsiveDialog
+                                  :open="updateProfileDialogOpenForId === profile.id"
+                                  @update:open="updateProfileDialogOpenForId = updateProfileDialogOpenForId === profile.id ? undefined : profile.id"
+                                >
+                                  <ResponsiveDialogTrigger as-child>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      aria-label="Edit"
+                                    >
+                                      <Pencil />
+                                    </Button>
+                                  </ResponsiveDialogTrigger>
+                                  <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
+                                    <ResponsiveDialogHeader>
+                                      <ResponsiveDialogTitle>
+                                        Update Profile
+                                      </ResponsiveDialogTitle>
+                                      <ResponsiveDialogDescription>
+                                        Fill out the form below to update this profile.
+                                      </ResponsiveDialogDescription>
+                                    </ResponsiveDialogHeader>
 
-                                  <div class="flex flex-col overflow-y-auto py-4 pb-0">
-                                    <LLMChatProfileForm
-                                      :update="profile"
-                                      class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
-                                      @updated="(updatedProfile) => {
-                                        if (profileSelected && profileSelected.id === updatedProfile.id) {
-                                          profileSelected = updatedProfile
-                                        }
-                                        updateProfileDialogOpenForId = undefined
-                                      }"
-                                    />
-                                  </div>
-                                </ResponsiveDialogContent>
-                              </ResponsiveDialog>
-                              <AlertDialog>
-                                <AlertDialogTrigger as-child>
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    aria-label="Delete"
-                                  >
-                                    <Trash />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will permanently delete this profile. <b>Cannot be undone.</b>
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction @click="deleteProfile(profile.id)">
-                                      Continue
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                                    <div class="flex flex-col overflow-y-auto py-4 pb-0">
+                                      <LLMChatProfileForm
+                                        :update="profile"
+                                        class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
+                                        @updated="(updatedProfile) => {
+                                          if (profileSelected && profileSelected.id === updatedProfile.id) {
+                                            profileSelected = updatedProfile
+                                          }
+                                          updateProfileDialogOpenForId = undefined
+                                        }"
+                                      />
+                                    </div>
+                                  </ResponsiveDialogContent>
+                                </ResponsiveDialog>
+                                <AlertDialog>
+                                  <AlertDialogTrigger as-child>
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="icon"
+                                      aria-label="Delete"
+                                    >
+                                      <Trash />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete this profile. <b>Cannot be undone.</b>
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction @click="deleteProfile(profile.id)">
+                                        Continue
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <ResponsiveDialogFooter>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="lg"
-                            @click="createProfileDialogOpen = true"
-                          >
-                            Create New Profile
-                          </Button>
-                        </ResponsiveDialogFooter>
+                          <ResponsiveDialogFooter>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="lg"
+                              @click="createProfileDialogOpen = true"
+                            >
+                              Create New Profile
+                            </Button>
+                          </ResponsiveDialogFooter>
 
-                        <ResponsiveDialog v-model:open="createProfileDialogOpen">
-                          <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                            <ResponsiveDialogHeader>
-                              <ResponsiveDialogTitle>
-                                Create New Profile
-                              </ResponsiveDialogTitle>
-                              <ResponsiveDialogDescription>
-                                Fill out the form below to create a new profile.
-                              </ResponsiveDialogDescription>
-                            </ResponsiveDialogHeader>
+                          <ResponsiveDialog v-model:open="createProfileDialogOpen">
+                            <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
+                              <ResponsiveDialogHeader>
+                                <ResponsiveDialogTitle>
+                                  Create New Profile
+                                </ResponsiveDialogTitle>
+                                <ResponsiveDialogDescription>
+                                  Fill out the form below to create a new profile.
+                                </ResponsiveDialogDescription>
+                              </ResponsiveDialogHeader>
 
-                            <div class="flex flex-col overflow-y-auto py-4 pb-0">
-                              <LLMChatProfileForm
-                                class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
-                                @created="createProfileDialogOpen = false"
-                              />
-                            </div>
-                          </ResponsiveDialogContent>
-                        </ResponsiveDialog>
-                      </ResponsiveDialogContent>
-                    </ResponsiveDialog>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="flex flex-row gap-1">
-              <Button v-if="messageState !== 'streaming'" type="submit" :disabled="messageState !== 'idle' || messageContent.length === 0">
-                <ArrowUp /> Send
-              </Button>
-              <Button v-else type="button" @click="stopActiveMessageStream">
-                <Square />
-              </Button>
+                              <div class="flex flex-col overflow-y-auto py-4 pb-0">
+                                <LLMChatProfileForm
+                                  class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
+                                  @created="createProfileDialogOpen = false"
+                                />
+                              </div>
+                            </ResponsiveDialogContent>
+                          </ResponsiveDialog>
+                        </ResponsiveDialogContent>
+                      </ResponsiveDialog>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div class="flex flex-row gap-1">
+                <Button v-if="messageState !== 'streaming'" type="submit" :disabled="messageState !== 'idle' || messageContent.length === 0">
+                  <ArrowUp /> Send
+                </Button>
+                <Button v-else type="button" @click="stopActiveMessageStream">
+                  <Square />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </NeonBorder>
       </div>
     </form>
   </div>
