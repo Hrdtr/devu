@@ -9,6 +9,7 @@
     "core:default",
     "core:window:default",
     "core:window:allow-start-dragging",
+    "core:app:allow-set-app-theme",
     "opener:default",
     "shell:default",
     {

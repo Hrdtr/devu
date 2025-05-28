@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { app } from '@tauri-apps/api'
 import { debouncedRef, useColorMode, useCssVar, useScroll } from '@vueuse/core'
 import { ChevronRight, MessageCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -23,7 +24,8 @@ const title = debouncedRef($title, 200)
 
 const { store, system } = useColorMode()
 const isDarkMode = computed(() => (store.value === 'auto' ? system.value : store.value) === 'dark')
-watch(isDarkMode, (value) => {
+watch(isDarkMode, async (value) => {
+  await app.setTheme(value ? 'dark' : 'light')
   requestAnimationFrame(() => {
     document.documentElement.dataset.theme = value ? 'dark' : 'light'
     document.documentElement.classList[value ? 'add' : 'remove']('dark')
