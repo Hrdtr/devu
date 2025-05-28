@@ -13,7 +13,9 @@ const { launchOnStartup, defaultView } = useSettingsGeneral()
 const launchOnStartupCheckError = ref<any | null>(null)
 onMounted(async () => {
   try {
+    console.info('Checking autostart status...')
     launchOnStartup.value = await autostartIsEnabled()
+    console.info(`Autostart status: ${launchOnStartup.value ? ' enabled.' : ' disabled.'}`)
   }
   catch (error) {
     console.error('Failed to check autostart status:', error)
@@ -28,12 +30,15 @@ async function toggleAutostart(enabled: boolean) {
   try {
     launchOnStartup.value = enabled
     if (enabled) {
+      console.info('Enabling autostart...')
       await autostartEnable()
     }
     else {
+      console.info('Disabling autostart...')
       await autostartDisable()
     }
     launchOnStartup.value = await autostartIsEnabled()
+    console.info(`Autostart status: ${launchOnStartup.value ? ' enabled.' : ' disabled.'}`)
     toggleAutostartPending.value = false
   }
   catch (error) {
