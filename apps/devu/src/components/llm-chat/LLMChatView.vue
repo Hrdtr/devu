@@ -84,6 +84,7 @@ marked.use({
       const copyButton = document.createElement('button')
       copyButton.classList.add(
         'copy-code',
+        'dark',
         'absolute',
         'top-1',
         'right-1',
@@ -94,7 +95,7 @@ marked.use({
       )
       // lucide:copy icon
       copyButton.innerHTML = `<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`
-      return `<pre class="relative border">${copyButton.outerHTML}<code ${classAttr}>${escaped ? code : escape(code, true)}\n</code></pre>`
+      return `<pre class="relative border rounded-lg">${copyButton.outerHTML}<code ${classAttr} class="rounded-lg">${escaped ? code : escape(code, true)}\n</code></pre>`
     },
   } as ReturnType<typeof markedHighlight>['renderer'],
 })
