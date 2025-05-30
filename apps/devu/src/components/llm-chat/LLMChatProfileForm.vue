@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { toTypedSchema } from '@vee-validate/zod'
 import { ErrorMessage, Field, useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
@@ -20,19 +21,26 @@ const emit = defineEmits<{
 
 const { profiles: _profiles, createProfile, updateProfile } = useLLMChatProfile()
 
-const providers = ['openai', 'anthropic', 'google-genai', 'ollama']
-const provider = ref(props.update && providers.includes(props.update.provider) ? props.update.provider : 'openai')
+const providers = [
+  { id: 'anthropic', name: 'Anthropic', modelListRefUrl: 'https://docs.anthropic.com/en/docs/about-claude/models/overview', apiKeyRefUrl: 'https://console.anthropic.com/settings/keys' },
+  { id: 'cohere', name: 'Cohere', modelListRefUrl: 'https://docs.cohere.com/v2/docs/models', apiKeyRefUrl: 'https://dashboard.cohere.com/api-keys' },
+  { id: 'google-genai', name: 'Google Generative AI', modelListRefUrl: 'https://ai.google.dev/gemini-api/docs/models', apiKeyRefUrl: 'https://aistudio.google.com/apikey' },
+  { id: 'groq', name: 'Groq', modelListRefUrl: 'https://console.groq.com/docs/models', apiKeyRefUrl: 'https://console.groq.com/keys' },
+  { id: 'mistralai', name: 'MistralAI', modelListRefUrl: 'https://docs.mistral.ai/getting-started/models/models_overview', apiKeyRefUrl: 'https://console.mistral.ai/api-keys' },
+  { id: 'ollama', name: 'Ollama', modelListRefUrl: undefined, apiKeyRefUrl: undefined },
+  { id: 'openai', name: 'OpenAI', modelListRefUrl: 'https://platform.openai.com/docs/models', apiKeyRefUrl: 'https://platform.openai.com/settings/organization/api-keys' },
+  { id: 'xai', name: 'XAI', modelListRefUrl: 'https://docs.x.ai/docs/models', apiKeyRefUrl: 'https://console.x.ai/team/default/api-keys' },
+]
+const provider = ref(props.update && providers.map(p => p.id).includes(props.update.provider) ? props.update.provider : 'anthropic')
 
 const providerSpecificShape = {
-  'openai': {
-    configuration: z.object({
-      baseUrl: z.string().optional(),
-    }),
+  'anthropic': {
+    configuration: z.object({}).default({}),
     credentials: z.object({
       apiKey: z.string().min(1),
     }),
   },
-  'anthropic': {
+  'cohere': {
     configuration: z.object({}).default({}),
     credentials: z.object({
       apiKey: z.string().min(1),
@@ -44,11 +52,37 @@ const providerSpecificShape = {
       apiKey: z.string().min(1),
     }),
   },
+  'groq': {
+    configuration: z.object({}).default({}),
+    credentials: z.object({
+      apiKey: z.string().min(1),
+    }),
+  },
+  'mistralai': {
+    configuration: z.object({}).default({}),
+    credentials: z.object({
+      apiKey: z.string().min(1),
+    }),
+  },
   'ollama': {
     configuration: z.object({
       baseUrl: z.string().optional(),
     }),
     credentials: z.object({}).default({}),
+  },
+  'openai': {
+    configuration: z.object({
+      baseUrl: z.string().optional(),
+    }),
+    credentials: z.object({
+      apiKey: z.string().min(1),
+    }),
+  },
+  'xai': {
+    configuration: z.object({}).default({}),
+    credentials: z.object({
+      apiKey: z.string().min(1),
+    }),
   },
 }
 const schema = computed(() => toTypedSchema(z.object({
@@ -58,7 +92,7 @@ const schema = computed(() => toTypedSchema(z.object({
   ...providerSpecificShape[provider.value as keyof typeof providerSpecificShape],
 })))
 
-const { setValues, handleSubmit, isSubmitting, resetForm } = useForm({
+const { setValues, setFieldValue, handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: schema,
   initialValues: props.update,
 })
@@ -69,7 +103,12 @@ watch(() => props.update, (value) => {
     setValues(value)
   }
 })
-watch(provider, () => resetForm())
+watch(provider, (value) => {
+  resetForm()
+  if (value === 'ollama') {
+    setFieldValue('configuration.baseUrl', 'http://localhost:11434')
+  }
+})
 
 const submit = handleSubmit(async (formValues) => {
   if (props.update) {
@@ -98,8 +137,8 @@ const submit = handleSubmit(async (formValues) => {
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Providers</SelectLabel>
-            <SelectItem v-for="item in providers" :key="item" :value="item">
-              {{ item }}
+            <SelectItem v-for="item in providers" :key="item.id" :value="item.id">
+              {{ item.name }}
             </SelectItem>
           </SelectGroup>
         </SelectContent>
@@ -124,9 +163,11 @@ const submit = handleSubmit(async (formValues) => {
           class="text-muted-foreground"
         >(Optional)</span></Label>
         <Input id="configuration.baseUrl" v-bind="{ ...componentField, disabled: isSubmitting }" autocorrect="off" />
-        <p class="text-muted-foreground text-sm mt-1.5">
-          Provider-specific API endpoint base URL.
-          {{ provider === 'openai' ? ' Enter a URL here to connect with OpenAI-compatible providers not listed.' : '' }}
+        <p v-if="provider === 'openai'" class="text-muted-foreground text-sm mt-1.5">
+          API endpoint base URL. You can use this field to connect with other OpenAI-compatible providers.
+        </p>
+        <p v-if="provider === 'ollama'" class="text-muted-foreground text-sm mt-1.5">
+          Ollama server endpoint.
         </p>
         <ErrorMessage name="configuration.baseUrl" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
@@ -137,7 +178,14 @@ const submit = handleSubmit(async (formValues) => {
         <Label for="credentials.apiKey" class="mb-2">API Key</Label>
         <Input id="credentials.apiKey" v-bind="{ ...componentField, disabled: isSubmitting, type: 'password' }" autocorrect="off" />
         <p class="text-muted-foreground text-sm mt-1.5">
-          Provider-specific API Key to be used in every requests.
+          Fill with your<span v-if="providers.find(p => p.id === provider)?.apiKeyRefUrl">&nbsp;</span><a
+            v-if="providers.find(p => p.id === provider)?.apiKeyRefUrl"
+            class="underline"
+            :href="providers.find(p => p.id === provider)!.apiKeyRefUrl!"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.prevent="openUrl(providers.find(p => p.id === provider)!.apiKeyRefUrl!)"
+          >{{ providers.find(p => p.id === provider)!.name }} API key</a>.
         </p>
         <ErrorMessage name="credentials.apiKey" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>
@@ -147,8 +195,18 @@ const submit = handleSubmit(async (formValues) => {
       <Field v-slot="{ componentField }" name="model">
         <Label for="model" class="mb-2">Model</Label>
         <Input id="model" v-bind="{ ...componentField, disabled: isSubmitting }" autocorrect="off" />
-        <p class="text-muted-foreground text-sm mt-1.5">
-          Provider-specific model id to use.
+        <p v-if="provider !== 'ollama'" class="text-muted-foreground text-sm mt-1.5">
+          Enter a model identifier{{ provider !== 'ollama' ? ' found in the' : '' }}<span v-if="providers.find(p => p.id === provider)?.modelListRefUrl">&nbsp;</span><a
+            v-if="providers.find(p => p.id === provider)?.modelListRefUrl"
+            class="underline"
+            :href="providers.find(p => p.id === provider)!.modelListRefUrl!"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.prevent="openUrl(providers.find(p => p.id === provider)!.modelListRefUrl!)"
+          >{{ providers.find(p => p.id === provider)!.name }} model list</a>.
+        </p>
+        <p v-if="provider === 'ollama'" class="text-muted-foreground text-sm mt-1.5">
+          Enter the Ollama model name to use. Make sure the model is already pulled.
         </p>
         <ErrorMessage name="model" class="text-destructive-foreground text-sm mt-1.5" />
       </Field>

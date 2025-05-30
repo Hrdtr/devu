@@ -166,8 +166,9 @@ watch(chatContainerRef, (value) => {
   scrollElementRef.value = value?.$el
 }, { immediate: true })
 
-const { client, safe } = useApi()
+const initialChatPayload = useLocalStorage('initialChatPayload', '')
 
+const { client, safe } = useApi()
 const { profiles, deleteProfile } = useLLMChatProfile()
 const { createChat } = useLLMChat()
 const {
@@ -273,6 +274,10 @@ const createProfileDialogOpen = ref(false)
 const updateProfileDialogOpenForId = ref<string>()
 
 async function initializeProfile() {
+  if (initialChatPayload.value) {
+    return
+  }
+  await nextTick()
   const assistantMessages = messages.value.data.filter(i => i.role === 'assistant')
   const { provider, model } = assistantMessages[assistantMessages.length - 1]?.metadata || {}
   if (provider && model) {
@@ -282,22 +287,27 @@ async function initializeProfile() {
     profileSelected.value = profiles.value[0]
   }
 }
-onActivated(initializeProfile)
-watch([profiles, messageState], ([profilesValue, messageStateValue], [prevProfilesValue, prevMessageStateValue]) => {
-  if ((messageStateValue === 'idle' && prevMessageStateValue === 'loading') || (profilesValue.length > 0 && prevProfilesValue.length === 0)) {
+watch(() => profiles.value.length, (value, oldValue) => {
+  if (value > 0 && oldValue === 0) {
     initializeProfile()
   }
-})
+}, { immediate: true })
+watch(messageState, (value, oldValue) => {
+  if (value === 'idle' && oldValue === 'loading') {
+    initializeProfile()
+  }
+}, { immediate: true })
+onActivated(initializeProfile)
 
 // Handle initial message on new chat creation
-const initialChatPayload = useLocalStorage('initialChatPayload', '')
 onMounted(async () => {
   if (initialChatPayload.value) {
     const { message, profile: initialChatProfile } = JSON.parse(initialChatPayload.value)
     profileSelected.value = profiles.value.find(p => p.id === initialChatProfile.id)
-    await nextTick()
-    await sendMessage(message, initialChatProfile)
-    initialChatPayload.value = ''
+    sendMessage(message, initialChatProfile)
+      .finally(() => {
+        initialChatPayload.value = ''
+      })
   }
 })
 
@@ -503,11 +513,13 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
               <div class="w-full max-w-screen-md mx-auto p-4 mb-4 space-y-2">
                 <div
                   v-if="message.role === 'human'"
-                  class="px-3 py-2 mb-1 w-fit max-w-[80%] bg-secondary text-secondary-foreground rounded-lg ml-auto text-right transition origin-bottom-right"
+                  class="px-3 py-2 mb-1 w-fit max-w-[80%] bg-secondary text-secondary-foreground rounded-lg ml-auto transition origin-bottom-right"
                   :class="editMessageId === message.id ? 'opacity-0 scale-80' : 'opacity-100 scale-100'"
                 >
                   <div class="select-auto">
-                    <p>{{ message.content }}</p>
+                    <p class="whitespace-pre-line">
+                      {{ message.content }}
+                    </p>
                   </div>
                 </div>
                 <div v-else class="mb-1">
@@ -716,7 +728,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
             <div class="px-3 flex flex-row justify-between gap-4 pb-3">
               <div class="flex flex-row gap-1">
                 <Select v-model="profileSelected" required>
-                  <SelectTrigger class="max-w-40">
+                  <SelectTrigger class="max-w-48">
                     <SelectValue placeholder="Select a profile" class="w-full !inline-block !truncate" />
                   </SelectTrigger>
                   <SelectContent>

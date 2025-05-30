@@ -1,18 +1,16 @@
-import type { AIMessageChunk } from '@langchain/core/messages'
 import type { IterableReadableStream } from '@langchain/core/utils/stream'
 import type { InferSelectModel } from 'drizzle-orm'
 import type { SnakeCase } from 'scule'
 import type { DB } from '@/database'
 import { Buffer } from 'node:buffer'
-import { ChatAnthropic } from '@langchain/anthropic'
-import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages'
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
-import { Ollama } from '@langchain/ollama'
-import { ChatOpenAI } from '@langchain/openai'
+import { AIMessage, AIMessageChunk, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages'
+import { Tool } from '@langchain/core/tools'
+import { concat } from '@langchain/core/utils/stream'
 import { eventIterator, ORPCError } from '@orpc/server'
 import { z } from 'zod'
 import { and, createId, desc, eq, min, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
+import { createLLMChatClient } from '@/utils/create-llm-chat-client'
 
 const llmChatMessageSchema = z.object({
   id: z.uuidv7(),
@@ -48,6 +46,7 @@ export const llmChatMessage = srv
       .output(eventIterator(z.union([
         z.object({ action: z.literal('push_message'), data: llmChatMessageSchema }),
         z.object({ action: z.literal('append_message_content_chunk'), data: z.object({ messageId: z.uuidv7(), chunk: z.string() }) }),
+        z.object({ action: z.literal('tool_invoke'), data: z.string() }),
         z.object({ action: z.literal('set_chat_title'), data: z.string() }),
       ])))
       .handler(async function* ({ context, input, signal }) {
@@ -69,7 +68,7 @@ export const llmChatMessage = srv
           throw new ORPCError('NOT_FOUND', { message: 'Profile not found' })
         }
 
-        const llmClient = createLLMClient(profile)
+        const { client: llmClient, tools } = createLLMChatClient.withTools(profile, ['utility', 'codeSnippet'])
 
         let humanMessage: Message | undefined
         let assistantMessage: Message | undefined
@@ -123,20 +122,78 @@ export const llmChatMessage = srv
             ),
           ]
 
-          llmStream = await llmClient.stream(history)
           activeGenerations.add(assistantMessage.id)
-          for await (const chunk of llmStream) {
-            if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
-              return
+
+          const MAX_TOOL_CALL_ITERATIONS = 5 // Prevent infinite loops
+          let currentToolCallIteration = 0
+          while (currentToolCallIteration < MAX_TOOL_CALL_ITERATIONS) {
+            const llmStream = await llmClient.stream(history)
+            let assistantToolCallMessage: AIMessageChunk | undefined
+
+            for await (const chunk of llmStream) {
+              if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
+                return
+              }
+
+              const toolCallChunks = chunk instanceof AIMessageChunk ? chunk.tool_call_chunks : []
+              if (toolCallChunks && toolCallChunks.length > 0) {
+                if (!assistantToolCallMessage) {
+                  for (const toolCallChunk of toolCallChunks) {
+                    yield { action: 'tool_invoke', data: toolCallChunk.name || '' }
+                  }
+                }
+                assistantToolCallMessage = assistantToolCallMessage !== undefined ? concat(assistantToolCallMessage, chunk) : chunk
+              }
+              else {
+                assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
+                yield {
+                  action: 'append_message_content_chunk',
+                  data: {
+                    messageId: assistantMessage.id,
+                    chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
+                  },
+                }
+              }
             }
 
-            assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
-            yield {
-              action: 'append_message_content_chunk',
-              data: {
-                messageId: assistantMessage.id,
-                chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
-              },
+            if (assistantToolCallMessage?.tool_calls && assistantToolCallMessage.tool_calls.length > 0) {
+              history.push(assistantToolCallMessage)
+
+              for (const toolCall of assistantToolCallMessage.tool_calls) {
+                console.info(`Executing tool '${toolCall.name}' with args: ${JSON.stringify(toolCall.args)}`)
+                let toolResult: any
+                try {
+                  const tool = tools.find(tool => (tool instanceof Tool ? tool.name : tool.function.name) === toolCall.name)
+                  if (tool) {
+                    toolResult = await tool.invoke(toolCall.args)
+                  }
+                  else {
+                    toolResult = `Error: '${toolCall.name}' tool not found.`
+                  }
+                }
+                catch (error) {
+                  console.error(`Error while executing tool '${toolCall.name}':`, error)
+                  toolResult = `Error: ${error instanceof Error ? error.message : String(error)}`
+                }
+
+                let stringifiedToolResult: string
+                try {
+                  stringifiedToolResult = JSON.stringify(toolResult)
+                }
+                catch {
+                  stringifiedToolResult = String(toolResult)
+                }
+                history.push(new ToolMessage({
+                  tool_call_id: toolCall.id || '',
+                  content: stringifiedToolResult,
+                  name: toolCall.name,
+                }))
+              }
+
+              currentToolCallIteration++
+            }
+            else {
+              break
             }
           }
 
@@ -162,6 +219,12 @@ export const llmChatMessage = srv
               yield { action: 'set_chat_title', data: newChatTitle }
             }
           }
+        }
+        catch (error) {
+          console.error(error)
+          throw new ORPCError('INTERNAL_SERVER_ERROR', {
+            message: error instanceof Error ? error.message : String(error),
+          })
         }
         finally {
           if (!llmStreamFinished) {
@@ -254,6 +317,7 @@ export const llmChatMessage = srv
         z.object({ action: z.literal('push_message'), data: llmChatMessageSchema }),
         z.object({ action: z.literal('append_message_content_chunk'), data: z.object({ messageId: z.uuidv7(), chunk: z.string() }) }),
         z.object({ action: z.literal('truncate_messages_after'), data: z.string() }),
+        z.object({ action: z.literal('tool_invoke'), data: z.string() }),
         z.object({ action: z.literal('switch_to_branch'), data: z.string() }),
       ])))
       .handler(async function* ({ context, input, signal }) {
@@ -282,7 +346,7 @@ export const llmChatMessage = srv
           throw new ORPCError('NOT_FOUND', { message: 'Parent message not found' })
         }
 
-        const llmClient = createLLMClient(profile)
+        const { client: llmClient, tools } = createLLMChatClient.withTools(profile)
 
         let assistantMessage: Message | undefined
         let llmStream: IterableReadableStream<string> | IterableReadableStream<AIMessageChunk> | undefined
@@ -325,24 +389,88 @@ export const llmChatMessage = srv
               ),
           ]
 
-          llmStream = await llmClient.stream(history)
           activeGenerations.add(assistantMessage.id)
-          for await (const chunk of llmStream) {
-            if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
-              return
+
+          const MAX_TOOL_CALL_ITERATIONS = 5 // Prevent infinite loops
+          let currentToolCallIteration = 0
+          while (currentToolCallIteration < MAX_TOOL_CALL_ITERATIONS) {
+            llmStream = await llmClient.stream(history)
+            let assistantToolCallMessage: AIMessageChunk | undefined
+
+            for await (const chunk of llmStream) {
+              if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
+                return
+              }
+
+              const toolCallChunks = chunk instanceof AIMessageChunk ? chunk.tool_call_chunks : []
+              if (toolCallChunks && toolCallChunks.length > 0) {
+                if (!assistantToolCallMessage) {
+                  for (const toolCallChunk of toolCallChunks) {
+                    yield { action: 'tool_invoke', data: toolCallChunk.name || '' }
+                  }
+                }
+                assistantToolCallMessage = assistantToolCallMessage !== undefined ? concat(assistantToolCallMessage, chunk) : chunk
+              }
+              else {
+                assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
+                yield {
+                  action: 'append_message_content_chunk',
+                  data: {
+                    messageId: assistantMessage.id,
+                    chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
+                  },
+                }
+              }
             }
 
-            assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
-            yield {
-              action: 'append_message_content_chunk',
-              data: {
-                messageId: assistantMessage.id,
-                chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
-              },
+            if (assistantToolCallMessage?.tool_calls && assistantToolCallMessage.tool_calls.length > 0) {
+              history.push(assistantToolCallMessage)
+
+              for (const toolCall of assistantToolCallMessage.tool_calls) {
+                console.info(`Executing tool '${toolCall.name}' with args: ${JSON.stringify(toolCall.args)}`)
+                let toolResult: any
+                try {
+                  const tool = tools.find(tool => (tool instanceof Tool ? tool.name : tool.function.name) === toolCall.name)
+                  if (tool) {
+                    toolResult = await tool.invoke(toolCall.args)
+                  }
+                  else {
+                    toolResult = `Error: '${toolCall.name}' tool not found.`
+                  }
+                }
+                catch (error) {
+                  console.error(`Error while executing tool '${toolCall.name}':`, error)
+                  toolResult = `Error: ${error instanceof Error ? error.message : String(error)}`
+                }
+
+                let stringifiedToolResult: string
+                try {
+                  stringifiedToolResult = JSON.stringify(toolResult)
+                }
+                catch {
+                  stringifiedToolResult = String(toolResult)
+                }
+                history.push(new ToolMessage({
+                  tool_call_id: toolCall.id || '',
+                  content: stringifiedToolResult,
+                  name: toolCall.name,
+                }))
+              }
+
+              currentToolCallIteration++
+            }
+            else {
+              break
             }
           }
 
           llmStreamFinished = true
+        }
+        catch (error) {
+          console.error(error)
+          throw new ORPCError('INTERNAL_SERVER_ERROR', {
+            message: error instanceof Error ? error.message : String(error),
+          })
         }
         finally {
           if (!llmStreamFinished) {
@@ -377,7 +505,8 @@ export const llmChatMessage = srv
       .output(eventIterator(z.union([
         z.object({ action: z.literal('push_message'), data: llmChatMessageSchema }),
         z.object({ action: z.literal('append_message_content_chunk'), data: z.object({ messageId: z.uuidv7(), chunk: z.string() }) }),
-        z.object({ action: z.literal('truncate_messages_after'), data: z.string() }),
+        z.object({ action: z.literal('truncate_messages_since'), data: z.string() }),
+        z.object({ action: z.literal('tool_invoke'), data: z.string() }),
         z.object({ action: z.literal('switch_to_branch'), data: z.string() }),
       ])))
       .handler(async function* ({ context, input, signal }) {
@@ -402,11 +531,8 @@ export const llmChatMessage = srv
         const humanMessageParent = message.parentId
           ? await context.db.query.llmChatMessage.findFirst({ where: (field, { eq }) => eq(field.id, message.parentId!) })
           : undefined
-        if (!humanMessageParent) {
-          throw new ORPCError('NOT_FOUND', { message: 'Parent message not found' })
-        }
 
-        const llmClient = createLLMClient(profile)
+        const { client: llmClient, tools } = createLLMChatClient.withTools(profile)
 
         let humanMessage: Message | undefined
         let assistantMessage: Message | undefined
@@ -428,7 +554,7 @@ export const llmChatMessage = srv
             branch,
             metadata: {},
           }
-          yield { action: 'truncate_messages_after', data: humanMessageParent.id }
+          yield { action: 'truncate_messages_since', data: message.id }
           yield { action: 'push_message', data: humanMessage }
           await context.db.insert(schema.llmChatMessage).values(humanMessage)
 
@@ -461,24 +587,88 @@ export const llmChatMessage = srv
               ),
           ]
 
-          llmStream = await llmClient.stream(history)
           activeGenerations.add(assistantMessage.id)
-          for await (const chunk of llmStream) {
-            if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
-              return
+
+          const MAX_TOOL_CALL_ITERATIONS = 5 // Prevent infinite loops
+          let currentToolCallIteration = 0
+          while (currentToolCallIteration < MAX_TOOL_CALL_ITERATIONS) {
+            const llmStream = await llmClient.stream(history)
+            let assistantToolCallMessage: AIMessageChunk | undefined
+
+            for await (const chunk of llmStream) {
+              if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
+                return
+              }
+
+              const toolCallChunks = chunk instanceof AIMessageChunk ? chunk.tool_call_chunks : []
+              if (toolCallChunks && toolCallChunks.length > 0) {
+                if (!assistantToolCallMessage) {
+                  for (const toolCallChunk of toolCallChunks) {
+                    yield { action: 'tool_invoke', data: toolCallChunk.name || '' }
+                  }
+                }
+                assistantToolCallMessage = assistantToolCallMessage !== undefined ? concat(assistantToolCallMessage, chunk) : chunk
+              }
+              else {
+                assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
+                yield {
+                  action: 'append_message_content_chunk',
+                  data: {
+                    messageId: assistantMessage.id,
+                    chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
+                  },
+                }
+              }
             }
 
-            assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
-            yield {
-              action: 'append_message_content_chunk',
-              data: {
-                messageId: assistantMessage.id,
-                chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
-              },
+            if (assistantToolCallMessage?.tool_calls && assistantToolCallMessage.tool_calls.length > 0) {
+              history.push(assistantToolCallMessage)
+
+              for (const toolCall of assistantToolCallMessage.tool_calls) {
+                console.info(`Executing tool '${toolCall.name}' with args: ${JSON.stringify(toolCall.args)}`)
+                let toolResult: any
+                try {
+                  const tool = tools.find(tool => (tool instanceof Tool ? tool.name : tool.function.name) === toolCall.name)
+                  if (tool) {
+                    toolResult = await tool.invoke(toolCall.args)
+                  }
+                  else {
+                    toolResult = `Error: '${toolCall.name}' tool not found.`
+                  }
+                }
+                catch (error) {
+                  console.error(`Error while executing tool '${toolCall.name}':`, error)
+                  toolResult = `Error: ${error instanceof Error ? error.message : String(error)}`
+                }
+
+                let stringifiedToolResult: string
+                try {
+                  stringifiedToolResult = JSON.stringify(toolResult)
+                }
+                catch {
+                  stringifiedToolResult = String(toolResult)
+                }
+                history.push(new ToolMessage({
+                  tool_call_id: toolCall.id || '',
+                  content: stringifiedToolResult,
+                  name: toolCall.name,
+                }))
+              }
+
+              currentToolCallIteration++
+            }
+            else {
+              break
             }
           }
 
           llmStreamFinished = true
+        }
+        catch (error) {
+          console.error(error)
+          throw new ORPCError('INTERNAL_SERVER_ERROR', {
+            message: error instanceof Error ? error.message : String(error),
+          })
         }
         finally {
           if (!llmStreamFinished) {
@@ -549,36 +739,6 @@ export const llmChatMessage = srv
         return data.map(row => row.branchId)
       })),
   })
-
-function createLLMClient(profile: InferSelectModel<typeof schema.llmChatProfile>) {
-  switch (profile.provider) {
-    case 'openai':
-      return new ChatOpenAI({
-        openAIApiKey: profile.credentials.apiKey,
-        configuration: profile.configuration.baseUrl
-          ? { baseURL: profile.configuration.baseUrl }
-          : undefined,
-        modelName: profile.model,
-      })
-    case 'anthropic':
-      return new ChatAnthropic({
-        anthropicApiKey: profile.credentials.apiKey,
-        modelName: profile.model,
-      })
-    case 'google-genai':
-      return new ChatGoogleGenerativeAI({
-        apiKey: profile.credentials.apiKey,
-        model: profile.model,
-      })
-    case 'ollama':
-      return new Ollama({
-        baseUrl: profile.configuration.baseUrl,
-        model: profile.model,
-      })
-    default:
-      throw new ORPCError('INTERNAL_SERVER_ERROR', { message: `Unknown provider: ${profile.provider}` })
-  }
-}
 
 type Message = InferSelectModel<typeof schema.llmChatMessage>
 
@@ -806,12 +966,59 @@ function createSystemMessages(profile: InferSelectModel<typeof schema.llmChatPro
   return [
     new SystemMessage(`
 You are a user development assistant, ready to help with coding tasks, documentation, and more.
+You are integrated into a desktop application called Devu.
 
-You are integrated into a desktop application called Devu, which includes the following features:
-- Chat interface
-- Ready-to-use developer utility collections
-- Code snippets manager (TBD)
-- Language/Code playground (TBD)
+# Devu
+
+<img align="right" src="apps/devu/public/icon-rounded.png" width="86" height="86" />
+
+**Your AI-Powered Development Utility**
+
+Devu is a versatile development utility that provides a suite of tools to enhance your coding workflow. It's built with Tauri, offering cross-platform support for Windows, macOS, and Linux.
+
+[![GitHub license](https://img.shields.io/github/license/Hrdtr/devu.svg)](https://github.com/Hrdtr/devu/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/Hrdtr/devu.svg)](https://github.com/Hrdtr/devu/releases)
+
+## Features
+
+- **LLM Chat:** Interact with large language models. Supports providers like Anthropic, Google GenAI, Ollama, and OpenAI.
+- **Code Playground:** Experiment with code snippets and execute them in a safe environment using Livecodes.
+- **Code Snippets:** Create, store, and manage reusable code snippets.
+- **Utilities:** Access a collection of useful development utilities such as code formatting, minification, and conversion.
+
+## Planned Features
+
+- **SSH Client**: A built-in SSH client for secure remote access.
+- **SFTP**: SFTP support for file transfer.
+- **API (REST, WS, etc.) Tester**: A tool to test and debug APIs.
+
+## Download and Installation
+
+Download the latest release from [https://github.com/Hrdtr/devu/releases](https://github.com/Hrdtr/devu/releases). Choose the correct binary/installer for your platform and architecture.
+
+## Contribution
+
+We welcome contributions to Devu! If you'd like to contribute, please follow these guidelines:
+
+- Report issues and suggest enhancements by creating [GitHub Issues](https://github.com/Hrdtr/devu).
+- Submit pull requests with clear descriptions of your changes.
+- Follow the project's coding standards and best practices.
+
+* Please adhere to the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Development
+
+To start the development environment, run the following commands:
+
+\`\`\`bash
+bun install
+bun dev
+\`\`\`
+
+## License
+
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+
 ${profile.additionalSystemPrompt ? `\n---\n${profile.additionalSystemPrompt}\n` : ''}`,
     ),
   ]

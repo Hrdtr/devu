@@ -262,9 +262,9 @@ export function useLLMChatMessages(
         }
         else {
           onEventReceived?.(event)
-          if (event.action === 'truncate_messages_after') {
+          if (event.action === 'truncate_messages_since') {
             messages.value = {
-              data: messages.value.data.slice(0, messages.value.data.findIndex(message => message.id === event.data) + 1),
+              data: messages.value.data.slice(0, messages.value.data.findIndex(message => message.id === event.data)),
               activeBranches: messages.value.activeBranches,
               nextCursor: messages.value.nextCursor,
             }

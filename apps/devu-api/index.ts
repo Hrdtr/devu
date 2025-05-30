@@ -1,5 +1,6 @@
 /* eslint-disable antfu/no-top-level-await */
 import { dirname, join, resolve } from 'node:path'
+// import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
@@ -14,6 +15,8 @@ import { config } from './config'
 import { createClient, useDatabase } from './database'
 import pkg from './package.json'
 import * as routes from './routes'
+
+// process.env.BUN_CONFIG_VERBOSE_FETCH = 'curl'
 
 const client = await createClient(join(config.appDataDir, 'data'))
 const db = useDatabase(client)

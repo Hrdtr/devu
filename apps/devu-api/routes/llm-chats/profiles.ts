@@ -110,7 +110,7 @@ export const llmChatProfile = srv
             .insert(schema.llmChatProfile)
             .values({
               id: createId(),
-              name: 'Ollama - Llama3.2 (3b)',
+              name: 'Ollama - llama3.2:3b',
               provider: 'ollama',
               configuration: {
                 baseUrl: 'http://localhost:11434',
