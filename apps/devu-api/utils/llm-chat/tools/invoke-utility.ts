@@ -47,11 +47,12 @@ export const invokeUtility = tool({
     if (!utility) {
       return `Unknown utility: ${args.utility_id}, available utilities are: ${Object.values(utilities).map(u => u.meta.id).join(', ')}`
     }
-    
+
     try {
       const result = await utility.invoke(args.input, args.options || null)
       return result
-    } catch (error) {
+    }
+    catch (error) {
       return `Error invoking utility ${args.utility_id}: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
   },
