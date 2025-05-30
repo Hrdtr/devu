@@ -25,7 +25,7 @@ export function createAgent(profile: InferSelectModel<typeof schema.llmChatProfi
       embedder: fastembed,
     }),
     tools: {
-      invokeUtility: invokeUtility as any,
+      invokeUtility,
     },
     instructions: `
 You are a user development assistant, ready to help with coding tasks, documentation, and more.

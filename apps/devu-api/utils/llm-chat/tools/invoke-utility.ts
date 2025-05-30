@@ -1,4 +1,5 @@
-import { jsonSchema, tool } from 'ai'
+import { createTool } from '@mastra/core'
+import { z } from 'zod/v3'
 import * as utilities from '@/routes/utilities/src'
 
 let parameterGuidanceForDescription = '\nSpecific parameter structures depend on the \'utility_id\':\n\n'
@@ -10,50 +11,38 @@ for (const utility of Object.values(utilities)) {
   }
 }
 
-export const invokeUtility = tool({
-  id: 'devu.invoke_utility' as const,
+export const invokeUtility = createTool({
+  id: 'devu.invoke_utility',
   description: `Acts as a dispatcher to invoke one of several available utilities. You MUST provide a valid 'utility_id'. The 'input' (object) and optional 'options' (object) must match the requirements of the selected utility.\n\n${parameterGuidanceForDescription}`,
-  parameters: jsonSchema<{ utility_id: string, input: any, options: any }>({
-    type: 'object',
-    properties: {
-      utility_id: {
-        type: 'string',
-        description: `The identifier of the specific utility to invoke. The required structure for 'input' and 'options' entirely depends on this ID.`,
-        enum: Object.values(utilities).map(u => u.meta.id),
-      },
-      input: {
-        type: 'object',
-        description: 'A JSON object containing the input parameters for the utility specified by \'utility_id\'. Its structure is variable and utility-dependent.',
-      },
-      options: {
-        type: 'object',
-        description: 'An optional JSON object for additional options for the selected utility. Structure is variable. Omit or pass an empty object {} if not needed or not applicable.',
-      },
-    },
-    required: ['utility_id', 'input'],
+  inputSchema: z.object({
+    utility_id: z.string().describe('The identifier of the specific utility to invoke. The required structure for \'input\' and \'options\' entirely depends on this ID.'),
+    input: z.any().describe('The input parameters for the utility specified by \'utility_id\'. It\'s structure is variable and utility-dependent.'),
+    options: z.any().optional().describe('An optional additional options for the selected utility. Structure is variable. Omit if not needed or not applicable.'),
   }),
-  execute: async (args) => {
+  execute: async ({ context }) => {
     // Validate utility_id
-    if (!args.utility_id || typeof args.utility_id !== 'string') {
+    if (!context.utility_id || typeof context.utility_id !== 'string') {
       return 'Error: utility_id must be a non-empty string'
     }
 
     // Validate input
-    if (!args.input || typeof args.input !== 'object') {
-      return 'Error: input must be a valid object'
+    if (!context.input) {
+      return 'Error: input must not be empty'
     }
 
-    const utility = Object.values(utilities).find(u => u.meta.id === args.utility_id)
+    const utility = Object.values(utilities).find(u => u.meta.id === context.utility_id)
     if (!utility) {
-      return `Unknown utility: ${args.utility_id}, available utilities are: ${Object.values(utilities).map(u => u.meta.id).join(', ')}`
+      console.error('Unknown utility:', context.utility_id)
+      return `Unknown utility: ${context.utility_id}, available utilities are: ${Object.values(utilities).map(u => u.meta.id).join(', ')}`
     }
 
     try {
-      const result = await utility.invoke(args.input, args.options || null)
+      const result = await utility.invoke(context.input, context.options || null)
       return result
     }
     catch (error) {
-      return `Error invoking utility ${args.utility_id}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      console.error('Error invoking utility:', error)
+      return `Error invoking utility ${context.utility_id}: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
   },
 })
