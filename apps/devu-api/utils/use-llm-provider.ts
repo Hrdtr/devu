@@ -77,7 +77,10 @@ export function useLLMProvider(id: LLMProviderId, options: UseLLMProviderOptions
       })
 
     case 'ollama':
-      return createOllama({ baseURL: options.configuration?.baseUrl })
+      return createOllama({
+        baseURL: options.configuration?.baseUrl,
+        headers: options.configuration?.headers,
+      })
 
     default:
       throw new Error(`Unknown provider: ${id}`)
