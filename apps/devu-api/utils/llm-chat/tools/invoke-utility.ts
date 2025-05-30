@@ -33,11 +33,26 @@ export const invokeUtility = tool({
     required: ['utility_id', 'input'],
   }),
   execute: async (args) => {
+    // Validate utility_id
+    if (!args.utility_id || typeof args.utility_id !== 'string') {
+      return 'Error: utility_id must be a non-empty string'
+    }
+
+    // Validate input
+    if (!args.input || typeof args.input !== 'object') {
+      return 'Error: input must be a valid object'
+    }
+
     const utility = Object.values(utilities).find(u => u.meta.id === args.utility_id)
     if (!utility) {
       return `Unknown utility: ${args.utility_id}, available utilities are: ${Object.values(utilities).map(u => u.meta.id).join(', ')}`
     }
-    const result = await utility.invoke(args.input, args.options || null)
-    return result
+    
+    try {
+      const result = await utility.invoke(args.input, args.options || null)
+      return result
+    } catch (error) {
+      return `Error invoking utility ${args.utility_id}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    }
   },
 })
