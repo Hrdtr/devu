@@ -9,6 +9,10 @@ import { useLLMLanguageModel } from '@/utils/use-llm-language-model'
 import { useLLMProvider } from '@/utils/use-llm-provider'
 import { invokeUtility } from './tools'
 
+// Building type declaration throws error if not imported
+// eslint-disable-next-line perfectionist/sort-imports, unused-imports/no-unused-imports
+import * as _ from '@mastra/core/tools'
+
 export function createAgent(profile: InferSelectModel<typeof schema.llmChatProfile>) {
   const provider = useLLMProvider(profile.provider as LLMProviderId, {
     credentials: profile.credentials,

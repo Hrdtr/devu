@@ -2,6 +2,10 @@ import { createTool } from '@mastra/core'
 import { z } from 'zod/v3'
 import * as utilities from '@/routes/utilities/src'
 
+// Building type declaration throws error if not imported
+// eslint-disable-next-line perfectionist/sort-imports, unused-imports/no-unused-imports
+import * as _ from '@mastra/core/tools'
+
 let parameterGuidanceForDescription = '\nSpecific parameter structures depend on the \'utility_id\':\n\n'
 for (const utility of Object.values(utilities)) {
   if (utility && utility.meta) {

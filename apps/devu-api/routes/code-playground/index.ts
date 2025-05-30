@@ -1,6 +1,3 @@
-// Building type declaration throws error if zod isn't imported
-// eslint-disable-next-line unused-imports/no-unused-imports
-import { z } from 'zod/v4'
 import { srv } from '@/utils'
 import { codePlaygroundExecutionHistory } from './execution-histories'
 
