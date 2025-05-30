@@ -12,25 +12,48 @@ import { invokeUtility } from './tools'
 // Building type declaration throws error if not imported
 // eslint-disable-next-line perfectionist/sort-imports, unused-imports/no-unused-imports
 import * as _ from '@mastra/core/tools'
+import { simulateStreamingMiddleware, wrapLanguageModel } from 'ai'
 
-export function createAgent(profile: InferSelectModel<typeof schema.llmChatProfile>) {
+export function createAgent<
+  InvokeUtility extends boolean = false,
+>(
+  profile: InferSelectModel<typeof schema.llmChatProfile>,
+  options: {
+    tools?: {
+      invokeUtility?: InvokeUtility
+    }
+  } = {},
+) {
+  const tools = {
+    ...(options.tools?.invokeUtility ? { invokeUtility } : {}),
+  } as {
+    invokeUtility: InvokeUtility extends true ? typeof invokeUtility : never
+  }
+
   const provider = useLLMProvider(profile.provider as LLMProviderId, {
     credentials: profile.credentials,
     configuration: profile.configuration,
   })
-  const model = useLLMLanguageModel(profile.model, provider)
+
+  let model = useLLMLanguageModel(profile.model, provider)
+  // Ollama doesn't support streaming when using tools
+  // See: https://github.com/sgomez/ollama-ai-provider/issues/40
+  if (profile.provider === 'ollama' && Object.keys(tools).length > 0) {
+    model = wrapLanguageModel({
+      model,
+      middleware: simulateStreamingMiddleware(),
+    })
+  }
 
   return new Agent({
     name: 'Devu\'s User Assistant',
     model,
+    tools,
     memory: new Memory({
       storage: new LibSQLStore({ url: ':memory:' }),
       vector: new LibSQLVector({ connectionUrl: ':memory:' }),
       embedder: fastembed,
     }),
-    tools: {
-      invokeUtility,
-    },
     instructions: `
 You are a user development assistant, ready to help with coding tasks, documentation, and more.
 You are integrated into a desktop application called Devu.

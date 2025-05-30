@@ -110,13 +110,13 @@ export const llmChatProfile = srv
             .insert(schema.llmChatProfile)
             .values({
               id: createId(),
-              name: 'Ollama - llama3.2:3b',
+              name: 'Ollama - qwen3:4b',
               provider: 'ollama',
               configuration: {
-                baseUrl: 'http://localhost:11434',
+                baseUrl: 'http://localhost:11434/api',
               },
               credentials: {},
-              model: 'llama3.2:3b',
+              model: 'qwen3:4b',
               additionalSystemPrompt: null,
             })
             .returning()
@@ -161,7 +161,7 @@ export const llmChatProfile = srv
     update: defineRoute({
       summary: 'Update',
       method: 'PATCH',
-      path: '/{+id}',
+      path: '/{id}',
       tags: ['LLM Chat: Profile'],
     }, os => os
       .input(z.object({

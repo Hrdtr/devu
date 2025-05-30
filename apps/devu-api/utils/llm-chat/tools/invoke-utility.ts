@@ -8,7 +8,7 @@ import * as _ from '@mastra/core/tools'
 
 let parameterGuidanceForDescription = '\nSpecific parameter structures depend on the \'utility_id\':\n\n'
 for (const utility of Object.values(utilities)) {
-  if (utility && utility.meta) {
+  if (utility && utility.meta.id === 'color-converter') {
     parameterGuidanceForDescription += `${utility.meta.name} (${utility.meta.id}): ${utility.meta.description}\n`
     parameterGuidanceForDescription += `input:\n${JSON.stringify(utility.meta.schema.input, null, 2)}\n`
     parameterGuidanceForDescription += `options:\n${JSON.stringify(utility.meta.schema.options, null, 2)}\n\n`
@@ -24,11 +24,12 @@ export const invokeUtility = createTool({
     options: z.any().optional().describe('An optional additional options for the selected utility. Structure is variable. Omit if not needed or not applicable.'),
   }),
   execute: async ({ context }) => {
+    console.info(`Invoking utility with arguments: ${JSON.stringify(context, null, 2)}`)
+
     // Validate utility_id
     if (!context.utility_id || typeof context.utility_id !== 'string') {
       return 'Error: utility_id must be a non-empty string'
     }
-
     // Validate input
     if (!context.input) {
       return 'Error: input must not be empty'
