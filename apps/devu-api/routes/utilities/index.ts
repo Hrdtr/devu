@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { createId, schema } from '@/database'
 import { defineRoute, srv } from '@/utils'
 import { utilityInvocationHistory } from './invocation-histories'

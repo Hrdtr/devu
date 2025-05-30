@@ -1,6 +1,6 @@
-import type { ZodType } from 'zod'
+import type { ZodType } from 'zod/v4'
 import type { Meta } from './types'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 export function createDefinition<
   Input extends ZodType,

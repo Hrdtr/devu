@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({

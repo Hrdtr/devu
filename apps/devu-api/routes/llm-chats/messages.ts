@@ -7,7 +7,7 @@ import { AIMessage, AIMessageChunk, HumanMessage, SystemMessage, ToolMessage } f
 import { Tool } from '@langchain/core/tools'
 import { concat } from '@langchain/core/utils/stream'
 import { eventIterator, ORPCError } from '@orpc/server'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { and, createId, desc, eq, min, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 import { createLLMChatClient } from '@/utils/create-llm-chat-client'

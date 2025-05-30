@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
 import { defineRoute, srv } from '@/utils'
 import { llmChatMessage } from './messages'
