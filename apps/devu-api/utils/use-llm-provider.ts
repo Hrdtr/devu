@@ -52,7 +52,7 @@ export function useLLMProvider(id: LLMProviderId, options: UseLLMProviderOptions
         headers: options.configuration?.headers,
       })
 
-    case 'openai':
+    case 'openai': {
       const isOpenRouter = options.configuration?.baseUrl === 'https://openrouter.ai/api/v1'
       const hasCustomBaseUrl = options.configuration?.baseUrl && options.configuration.baseUrl.length > 0
 
@@ -71,6 +71,7 @@ export function useLLMProvider(id: LLMProviderId, options: UseLLMProviderOptions
         compatibility: hasCustomBaseUrl ? 'compatible' : 'strict',
         headers,
       })
+    }
 
     case 'x-ai':
       return createXai({
