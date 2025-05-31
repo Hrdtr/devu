@@ -96,7 +96,6 @@ export const { meta, schema } = createDefinition({
       }),
     }),
   },
-  dependencies: [],
   requiresInternet: false,
   tags: ['url', 'parser'],
   related: [],

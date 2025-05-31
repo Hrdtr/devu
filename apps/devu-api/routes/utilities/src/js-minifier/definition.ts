@@ -53,7 +53,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['terser'],
   requiresInternet: false,
   tags: ['javascript', 'minification'],
   related: ['js-beautifier'],

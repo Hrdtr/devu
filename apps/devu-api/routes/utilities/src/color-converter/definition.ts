@@ -46,7 +46,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['color-convert'],
   requiresInternet: false,
   tags: ['color', 'converter'],
   related: [],

@@ -49,7 +49,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['scule'],
   requiresInternet: false,
   tags: ['string', 'case', 'formatting'],
   related: [],

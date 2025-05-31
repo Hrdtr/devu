@@ -61,7 +61,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: [],
   requiresInternet: false,
   tags: ['number', 'base', 'converter'],
   related: [],

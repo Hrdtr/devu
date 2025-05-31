@@ -79,7 +79,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['js-yaml'],
   requiresInternet: false,
   tags: ['json', 'yaml', 'converter'],
   related: ['yaml-to-json'],

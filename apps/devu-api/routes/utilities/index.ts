@@ -3,7 +3,6 @@ import { createId, schema } from '@/database'
 import { defineRoute, srv } from '@/utils'
 import { utilityInvocationHistory } from './invocation-histories'
 import * as src from './src'
-import { MetaSchema } from './src/_shared/types'
 
 // 1) Given a single utility, build its router:
 function makeUtilityRoute<U extends typeof src[keyof typeof src]>(utility: U) {
@@ -17,13 +16,20 @@ function makeUtilityRoute<U extends typeof src[keyof typeof src]>(utility: U) {
         path: '/',
         tags: [`Utility: ${utility.meta.name}`],
       }, os => os
-        .output(MetaSchema.and(z.object({
+        .output(z.object({
+          id: z.string().default(utility.meta.id),
+          name: z.string().default(utility.meta.name),
+          description: z.string().default(utility.meta.description),
+          icon: z.string().default(utility.meta.icon ?? '').optional(),
+          requiresInternet: z.boolean().default(utility.meta.requiresInternet),
+          tags: z.array(z.string()).default(utility.meta.tags),
+          related: z.array(z.string()).default(utility.meta.related),
           schema: z.object({
             input: z.any().default(z.toJSONSchema(utility.schema.input)).meta({ type: 'object' }),
             options: z.any().default(z.toJSONSchema(utility.schema.options)).meta({ type: 'object' }),
             output: z.any().default(z.toJSONSchema(utility.schema.output)).meta({ type: 'object' }),
           }),
-        })))
+        }))
         .handler(() => ({
           ...utility.meta,
           schema: {
@@ -75,7 +81,33 @@ export const utility = srv
       method: 'GET',
       path: '/',
       tags: ['Utility'],
-    }, os => os.handler(() => Object.values(src).map(utility => utility.meta))),
+    }, os => os
+      .output(z.object({
+        id: z.string().meta({ examples: Object.values(src).map(utility => utility.meta.id) }),
+        name: z.string().meta({ examples: Object.values(src).map(utility => utility.meta.name) }),
+        description: z.string().meta({ examples: Object.values(src).map(utility => utility.meta.description) }),
+        icon: z.string().optional().meta({ examples: Object.values(src).map(utility => utility.meta.icon ?? '') }),
+        requiresInternet: z.boolean().meta({ examples: Object.values(src).map(utility => utility.meta.requiresInternet) }),
+        tags: z.array(z.string()).meta({ examples: Object.values(src).map(utility => utility.meta.tags) }),
+        related: z.array(z.string()).meta({ examples: Object.values(src).map(utility => utility.meta.related) }),
+        schema: z.object({
+          input: z.any().meta({ examples: Object.values(src).map(utility => z.toJSONSchema(utility.schema.input)) }).meta({ type: 'object' }),
+          options: z.any().meta({ examples: Object.values(src).map(utility => z.toJSONSchema(utility.schema.options)) }).meta({ type: 'object' }),
+          output: z.any().meta({ examples: Object.values(src).map(utility => z.toJSONSchema(utility.schema.output)) }).meta({ type: 'object' }),
+        }),
+      }).array())
+      .handler(() => {
+        return Object.values(src).map(utility => ({
+          ...utility.meta,
+          schema: {
+            input: z.toJSONSchema(utility.schema.input),
+            options: z.toJSONSchema(utility.schema.options),
+            output: z.toJSONSchema(utility.schema.output),
+          },
+        }))
+      })),
+
     invocationHistories: utilityInvocationHistory,
+
     ...buildUtilityRoutes(src),
   })

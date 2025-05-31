@@ -64,7 +64,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: [],
   requiresInternet: false,
   tags: ['string', 'sort', 'lines'],
   related: [],

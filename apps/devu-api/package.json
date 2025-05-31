@@ -24,6 +24,7 @@
     "@electric-sql/pglite": "^0.3.2",
     "@iarna/toml": "^2.2.5",
     "@json2csv/plainjs": "^7.0.6",
+    "@libsql/client": "^0.15.8",
     "@mastra/core": "^0.10.1",
     "@mastra/libsql": "^0.10.0",
     "@mastra/memory": "^0.10.1",

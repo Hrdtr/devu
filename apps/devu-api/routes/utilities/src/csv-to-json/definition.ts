@@ -97,7 +97,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['csv-parser'],
   requiresInternet: false,
   tags: ['csv', 'json', 'converter'],
   related: ['json-to-csv'],

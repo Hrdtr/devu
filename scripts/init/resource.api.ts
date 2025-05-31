@@ -19,7 +19,7 @@ const externals = {
   libsql: lockFileContent.split('\n').find(line => line.includes('"libsql@'))?.match(/libsql@([^"]+)"/)?.[1],
 }
 const externalArgs = Object.keys(externals).map(e => `--external ${e}`).join(' ')
-await $`bun build --target bun ${externalArgs} --outdir ${OUTPUT_DIR} index.ts`.cwd(SOURCE_DIR)
+await $`bun build --target bun ${externalArgs} --outdir ${OUTPUT_DIR} --minify index.ts`.cwd(SOURCE_DIR)
 
 mkdirIfNotExists(join(OUTPUT_DIR, 'database', 'migrations'))
 cpSync(join(SOURCE_DIR, 'database', 'migrations'), join(OUTPUT_DIR, 'database', 'migrations'), { recursive: true })
@@ -35,7 +35,7 @@ try {
 }
 catch (e) {
   if (e instanceof $.ShellError && e.stderr.toString().includes('error: 0')) {
-    // ignore
+    // Some bun pm trust commands exit with code 0 but still write to stderr
   }
   else {
     throw e

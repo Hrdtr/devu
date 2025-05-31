@@ -97,7 +97,6 @@ export const { meta, schema } = createDefinition({
       }),
     }),
   },
-  dependencies: ['jsonwebtoken'],
   requiresInternet: false,
   tags: ['jwt', 'debugger'],
   related: [],
