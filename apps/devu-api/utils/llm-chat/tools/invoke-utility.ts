@@ -8,11 +8,9 @@ import * as _ from '@mastra/core/tools'
 
 let parameterGuidanceForDescription = '\nSpecific parameter structures depend on the \'utility_id\':\n\n'
 for (const utility of Object.values(utilities)) {
-  if (utility && utility.meta.id === 'color-converter') {
-    parameterGuidanceForDescription += `${utility.meta.name} (${utility.meta.id}): ${utility.meta.description}\n`
-    parameterGuidanceForDescription += `input:\n${JSON.stringify(utility.meta.schema.input, null, 2)}\n`
-    parameterGuidanceForDescription += `options:\n${JSON.stringify(utility.meta.schema.options, null, 2)}\n\n`
-  }
+  parameterGuidanceForDescription += `${utility.meta.name} (${utility.meta.id}): ${utility.meta.description}\n`
+  parameterGuidanceForDescription += `input:\n${JSON.stringify(utility.meta.schema.input, null, 2)}\n`
+  parameterGuidanceForDescription += `options:\n${JSON.stringify(utility.meta.schema.options, null, 2)}\n\n`
 }
 
 export const invokeUtility = createTool({

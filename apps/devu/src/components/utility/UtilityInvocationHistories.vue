@@ -71,15 +71,17 @@ async function deleteInvocationHistory(id: string) {
 </script>
 
 <template>
-  <div>
-    <Input
-      v-model="search"
-      placeholder="Search"
-      autocorrect="off"
-      class="mb-4"
-    />
+  <div class="w-full h-full flex flex-col">
+    <div class="search-wrapper shrink-0">
+      <Input
+        v-model="search"
+        placeholder="Search"
+        autocorrect="off"
+        class="mb-4"
+      />
+    </div>
     <ListboxRoot highlight-on-hover>
-      <ListboxContent ref="scrollElement" class="w-full h-full max-h-96 overflow-y-auto" :class="!histories ? '!min-h-96' : ''">
+      <ListboxContent ref="scrollElement" class="flex-1 w-full h-full max-h-[50vh] overflow-y-auto" :class="!histories ? '!min-h-[50vh]' : ''">
         <template v-if="histories">
           <template v-if="histories.data.length === 0">
             <p class="text-sm text-center text-muted-foreground">

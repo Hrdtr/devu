@@ -6,9 +6,9 @@ export const MetaSchema = z.object({
   description: z.string(),
   icon: z.string().optional(),
   schema: z.object({
-    input: z.record(z.string(), z.any()),
-    options: z.record(z.string(), z.any()),
-    output: z.record(z.string(), z.any()),
+    input: z.any(),
+    options: z.any(),
+    output: z.any(),
   }),
   dependencies: z.string().array(),
   requiresInternet: z.boolean(),

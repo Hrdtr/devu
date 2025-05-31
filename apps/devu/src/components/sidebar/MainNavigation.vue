@@ -128,8 +128,8 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
                       <Edit class="ml-auto" />
                     </DropdownMenuItem>
                   </ResponsiveDialogTrigger>
-                  <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                    <ResponsiveDialogHeader>
+                  <ResponsiveDialogContent class="max-h-[80vh] flex flex-col p-0">
+                    <ResponsiveDialogHeader class="p-6 pb-0">
                       <ResponsiveDialogTitle>Update Chat Title</ResponsiveDialogTitle>
                       <VisuallyHidden>
                         <ResponsiveDialogDescription>
@@ -138,13 +138,13 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
                       </VisuallyHidden>
                     </ResponsiveDialogHeader>
                     <form
-                      class="flex flex-col overflow-y-auto py-4"
+                      class="flex flex-col overflow-y-auto px-6 py-4"
                       @submit.prevent="updateChatTitle"
                     >
                       <Label for="title" class="mb-2">New Title</Label>
                       <Input id="title" v-model="newChatTitle" required />
                     </form>
-                    <ResponsiveDialogFooter>
+                    <ResponsiveDialogFooter class="p-6 pt-0">
                       <Button type="submit" @click="updateChatTitle">
                         Submit
                       </Button>

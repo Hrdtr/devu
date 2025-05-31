@@ -1,5 +1,5 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { ApiRouteOutput } from './use-api'
+import type { ApiRouteInput, ApiRouteOutput } from './use-api'
 import { useLocalStorage } from '@vueuse/core'
 import { computed, onMounted, readonly, ref, toValue, watch } from 'vue'
 import { toast } from 'vue-sonner'
@@ -108,7 +108,7 @@ export function useLLMChatMessages(
     }
   })
 
-  async function sendMessage(content: string, profile: ApiRouteOutput['llmChat']['profile']['list']['data'][number]) {
+  async function sendMessage(content: string, profile: ApiRouteOutput['llmChat']['profile']['list']['data'][number], tools?: ApiRouteInput['llmChat']['message']['create']['tools']) {
     if (messageState.value !== 'idle') {
       return
     }
@@ -120,6 +120,7 @@ export function useLLMChatMessages(
       content,
       profileId: profile.id,
       parentId: messages.value.data[messages.value.data.length - 1]?.id || null,
+      tools,
     }, {
       signal: abortController.signal,
     })
@@ -170,7 +171,7 @@ export function useLLMChatMessages(
     }
   }
 
-  async function regenerateMessage(id: string, profile: ApiRouteOutput['llmChat']['profile']['list']['data'][number]) {
+  async function regenerateMessage(id: string, profile: ApiRouteOutput['llmChat']['profile']['list']['data'][number], tools?: ApiRouteInput['llmChat']['message']['create']['tools']) {
     if (messageState.value !== 'idle') {
       return
     }
@@ -179,6 +180,7 @@ export function useLLMChatMessages(
     const response = await client.llmChat.message.regenerate({
       id,
       profileId: profile.id,
+      tools,
     }, {
       signal: abortController.signal,
     })
@@ -236,7 +238,7 @@ export function useLLMChatMessages(
     }
   }
 
-  async function editMessage(id: string, content: string, profile: ApiRouteOutput['llmChat']['profile']['list']['data'][number]) {
+  async function editMessage(id: string, content: string, profile: ApiRouteOutput['llmChat']['profile']['list']['data'][number], tools?: ApiRouteInput['llmChat']['message']['create']['tools']) {
     if (messageState.value !== 'idle') {
       return
     }
@@ -246,6 +248,7 @@ export function useLLMChatMessages(
       id,
       content,
       profileId: profile.id,
+      tools,
     }, {
       signal: abortController.signal,
     })
@@ -310,7 +313,7 @@ export function useLLMChatMessages(
     }
   }
 
-  const initialChatPayload = useLocalStorage('initialChatPayload', '')
+  const initialChatPayload = useLocalStorage('initial-llm-chat-payload', '')
   onMounted(async () => {
     // Prevent refresh the reactive messages array on initial chat
     if (!initialChatPayload.value && toValue(chatId) !== 'new') {

@@ -17,8 +17,21 @@ function makeUtilityRoute<U extends typeof src[keyof typeof src]>(utility: U) {
         path: '/',
         tags: [`Utility: ${utility.meta.name}`],
       }, os => os
-        .output(MetaSchema)
-        .handler(() => utility.meta)),
+        .output(MetaSchema.and(z.object({
+          schema: z.object({
+            input: z.any().default(z.toJSONSchema(utility.schema.input)).meta({ type: 'object' }),
+            options: z.any().default(z.toJSONSchema(utility.schema.options)).meta({ type: 'object' }),
+            output: z.any().default(z.toJSONSchema(utility.schema.output)).meta({ type: 'object' }),
+          }),
+        })))
+        .handler(() => ({
+          ...utility.meta,
+          schema: {
+            input: z.toJSONSchema(utility.schema.input),
+            options: z.toJSONSchema(utility.schema.options),
+            output: z.toJSONSchema(utility.schema.output),
+          },
+        }))),
 
       invoke: defineRoute({
         summary: 'Invoke',

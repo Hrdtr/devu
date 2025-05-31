@@ -2,9 +2,9 @@ import type { InferSelectModel } from 'drizzle-orm'
 import type { schema } from '@/database'
 import type { LLMProviderId } from '@/utils/use-llm-provider'
 import { Agent } from '@mastra/core'
-import { fastembed } from '@mastra/fastembed'
 import { LibSQLStore, LibSQLVector } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
+import { simulateStreamingMiddleware, wrapLanguageModel } from 'ai'
 import { useLLMLanguageModel } from '@/utils/use-llm-language-model'
 import { useLLMProvider } from '@/utils/use-llm-provider'
 import { invokeUtility } from './tools'
@@ -12,7 +12,6 @@ import { invokeUtility } from './tools'
 // Building type declaration throws error if not imported
 // eslint-disable-next-line perfectionist/sort-imports, unused-imports/no-unused-imports
 import * as _ from '@mastra/core/tools'
-import { simulateStreamingMiddleware, wrapLanguageModel } from 'ai'
 
 export function createAgent<
   InvokeUtility extends boolean = false,
@@ -52,7 +51,7 @@ export function createAgent<
     memory: new Memory({
       storage: new LibSQLStore({ url: ':memory:' }),
       vector: new LibSQLVector({ connectionUrl: ':memory:' }),
-      embedder: fastembed,
+      // embedder: fastembed,
     }),
     instructions: `
 You are a user development assistant, ready to help with coding tasks, documentation, and more.

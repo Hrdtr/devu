@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { Virtualizer } from '@tanstack/vue-virtual'
-import type { ApiRouteOutput } from '@/composables/use-api'
+import type { ApiRouteInput, ApiRouteOutput } from '@/composables/use-api'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { useClipboardItems, useLocalStorage, useScroll, watchDebounced } from '@vueuse/core'
 import hljs from 'highlight.js'
-import { ArrowUp, Check, ChevronDown, Cog, Copy, History, Pencil, RotateCcw, Square, Trash, X } from 'lucide-vue-next'
+import { ArrowUp, Check, ChevronDown, Cog, Copy, History, Pencil, RotateCcw, Square, Trash, Wrench, X } from 'lucide-vue-next'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import { ListboxContent, ListboxItem, ListboxRoot, ListboxVirtualizer } from 'reka-ui'
@@ -17,6 +17,7 @@ import { LLMChatMessageBranchSelection, LLMChatProfileForm } from '@/components/
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '@/components/responsive-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -166,7 +167,7 @@ watch(chatContainerRef, (value) => {
   scrollElementRef.value = value?.$el
 }, { immediate: true })
 
-const initialChatPayload = useLocalStorage('initialChatPayload', '')
+const initialChatPayload = useLocalStorage('initial-llm-chat-payload', '')
 
 const { client, safe } = useApi()
 const { profiles, deleteProfile } = useLLMChatProfile()
@@ -189,6 +190,10 @@ const {
       title.value = data
     }
   },
+})
+
+const tools = ref<NonNullable<ApiRouteInput['llmChat']['message']['create']['tools']>>({
+  invokeUtility: false,
 })
 
 const chat = ref<ApiRouteOutput['llmChat']['retrieve']>()
@@ -302,9 +307,10 @@ onActivated(initializeProfile)
 // Handle initial message on new chat creation
 onMounted(async () => {
   if (initialChatPayload.value) {
-    const { message, profile: initialChatProfile } = JSON.parse(initialChatPayload.value)
+    const { message, profile: initialChatProfile, tools: initialTools } = JSON.parse(initialChatPayload.value)
     profileSelected.value = profiles.value.find(p => p.id === initialChatProfile.id)
-    sendMessage(message, initialChatProfile)
+    tools.value = initialTools
+    sendMessage(message, initialChatProfile, initialTools)
       .finally(() => {
         initialChatPayload.value = ''
       })
@@ -332,13 +338,17 @@ async function submitMessage() {
   if (!chatId.value) {
     const newChat = await createChat()
     if (newChat) {
-      initialChatPayload.value = JSON.stringify({ message: messageContent.value, profile: profileSelected.value })
+      initialChatPayload.value = JSON.stringify({
+        message: messageContent.value,
+        profile: profileSelected.value,
+        tools: tools.value,
+      })
       messageContent.value = ''
       chatId.value = newChat.id
     }
   }
   else {
-    await sendMessage(messageContent.value, profileSelected.value)
+    await sendMessage(messageContent.value, profileSelected.value, tools.value)
   }
 }
 
@@ -403,7 +413,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
       </div>
     </Teleport>
     <div v-if="!chatId" class="w-full h-full grid place-items-center">
-      <div class="text-center p-14 w-full max-w-lg group">
+      <div class="text-center p-14 w-full max-w-lg group -mt-[64px]">
         <div class="flex justify-center isolate">
           <div
             class="size-12 bg-white grid place-items-center ring-1 ring-black/[0.08] rounded-xl relative left-2.5 top-1.5 -rotate-6 shadow-lg group-hover:-translate-x-5 group-hover:-rotate-12 group-hover:-translate-y-0.5 transition duration-500 group-hover:duration-200"
@@ -595,7 +605,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                               }
                               message.content = editMessageContent
                               editMessageId = undefined
-                              editMessage(message.id, message.content, profileSelected)
+                              editMessage(message.id, message.content, profileSelected, tools)
                                 .then(() => (editMessageContent = ''))
                                 .catch(toast.error)
                             }"
@@ -676,7 +686,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                           toast.error('Please select a profile first')
                           return
                         }
-                        regenerateMessage(message.id, profileSelected)
+                        regenerateMessage(message.id, profileSelected, tools)
                       }"
                     >
                       <RotateCcw class="size-4" />
@@ -725,10 +735,34 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
               rows="3"
               @keydown="handleKeyDown"
             />
-            <div class="px-3 flex flex-row justify-between gap-4 pb-3">
-              <div class="flex flex-row gap-1">
+            <div class="px-3 flex flex-row items-end justify-between gap-4 pb-3">
+              <div class="flex flex-wrap gap-1">
+                <Popover>
+                  <PopoverTrigger as-child>
+                    <Button variant="outline" size="sm" :class="Object.values(tools).some(Boolean) ? 'text-primary' : ''">
+                      <Wrench /> Tools
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="start" class="p-3">
+                    <label
+                      v-for="[key, value] in Object.entries(tools)"
+                      :key="key"
+                      :for="key"
+                      class="flex items-center justify-between gap-2 transition-colors"
+                      :class="Object.values(tools).some(Boolean) ? 'text-primary' : ''"
+                    >
+                      <span
+                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {{ titleCase(key) }}
+                      </span>
+                      <Checkbox :id="key" :model-value="value" @update:model-value="tools[key as keyof typeof tools] = $event === 'indeterminate' ? false : $event" />
+                    </label>
+                  </PopoverContent>
+                </Popover>
+
                 <Select v-model="profileSelected" required>
-                  <SelectTrigger class="max-w-48">
+                  <SelectTrigger class="max-w-48" size="sm">
                     <SelectValue placeholder="Select a profile" class="w-full !inline-block !truncate" />
                   </SelectTrigger>
                   <SelectContent>
@@ -748,8 +782,8 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                             <Cog /> Manage
                           </SelectItem>
                         </ResponsiveDialogTrigger>
-                        <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                          <ResponsiveDialogHeader>
+                        <ResponsiveDialogContent class="max-h-[80vh] flex flex-col p-0">
+                          <ResponsiveDialogHeader class="p-6 pb-0">
                             <ResponsiveDialogTitle>Manage Profiles</ResponsiveDialogTitle>
                             <ResponsiveDialogDescription>
                               Profiles are used to select the appropriate LLM model for chat, along with its specific
@@ -757,7 +791,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                             </ResponsiveDialogDescription>
                           </ResponsiveDialogHeader>
 
-                          <div class="flex flex-col overflow-y-auto py-4">
+                          <div class="flex flex-col overflow-y-auto p-6 py-4">
                             <div
                               v-for="profile in profiles"
                               :key="profile.id"
@@ -786,8 +820,8 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                                       <Pencil />
                                     </Button>
                                   </ResponsiveDialogTrigger>
-                                  <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                                    <ResponsiveDialogHeader>
+                                  <ResponsiveDialogContent class="max-h-[80vh] flex flex-col p-0">
+                                    <ResponsiveDialogHeader class="p-6 pb-0">
                                       <ResponsiveDialogTitle>
                                         Update Profile
                                       </ResponsiveDialogTitle>
@@ -796,7 +830,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                                       </ResponsiveDialogDescription>
                                     </ResponsiveDialogHeader>
 
-                                    <div class="flex flex-col overflow-y-auto py-4 pb-0">
+                                    <div class="flex flex-col overflow-y-auto p-6 pt-4">
                                       <LLMChatProfileForm
                                         :update="profile"
                                         class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
@@ -840,7 +874,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                             </div>
                           </div>
 
-                          <ResponsiveDialogFooter>
+                          <ResponsiveDialogFooter class="p-6 pt-0">
                             <Button
                               type="button"
                               variant="secondary"
@@ -852,8 +886,8 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                           </ResponsiveDialogFooter>
 
                           <ResponsiveDialog v-model:open="createProfileDialogOpen">
-                            <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-                              <ResponsiveDialogHeader>
+                            <ResponsiveDialogContent class="max-h-[80vh] flex flex-col p-0">
+                              <ResponsiveDialogHeader class="p-6 pb-0">
                                 <ResponsiveDialogTitle>
                                   Create New Profile
                                 </ResponsiveDialogTitle>
@@ -862,10 +896,13 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                                 </ResponsiveDialogDescription>
                               </ResponsiveDialogHeader>
 
-                              <div class="flex flex-col overflow-y-auto py-4 pb-0">
+                              <div class="flex flex-col overflow-y-auto p-6 pt-4">
                                 <LLMChatProfileForm
                                   class="[&_button[type='submit']]:sticky [&_button[type='submit']]:bottom-0"
-                                  @created="createProfileDialogOpen = false"
+                                  @created="(createdProfile) => {
+                                    createProfileDialogOpen = false
+                                    profileSelected = createdProfile
+                                  }"
                                 />
                               </div>
                             </ResponsiveDialogContent>

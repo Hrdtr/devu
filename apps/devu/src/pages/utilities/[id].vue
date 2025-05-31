@@ -102,17 +102,18 @@ onMounted(fetchInvocationHistories)
               <span class="sr-only">Invocation Histories</span>
             </Button>
           </ResponsiveDialogTrigger>
-          <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-            <ResponsiveDialogHeader>
+          <ResponsiveDialogContent class="max-h-[80vh] flex flex-col p-0">
+            <ResponsiveDialogHeader class="p-6 pb-0">
               <ResponsiveDialogTitle>Invocation Histories</ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
                 Here are the invocation histories for this utility.
               </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
 
-            <div class="flex flex-col overflow-y-auto">
+            <div class="flex-1 overflow-hidden">
               <UtilityInvocationHistories
                 :utility="String(route.params.id)"
+                class="[&_>_div.search-wrapper]:px-6 [&_>_div_.overflow-y-auto]:p-6 [&_>_div_.overflow-y-auto]:pt-0"
                 @restore="(value) => {
                   inputRef?.setValue(value.input)
                   if (value.options) {

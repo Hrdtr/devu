@@ -1,17 +1,11 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
-import { and, desc, eq, ilike, lt, or, schema } from '@/database'
+import { and, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const utilityInvocationHistorySchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  utility: z.string(),
-  input: z.any(),
-  options: z.any().nullable(),
-  output: z.any(),
-})
+const utilityInvocationHistorySchema = createSelectSchema(schema.utilityInvocationHistory)
 
 export const utilityInvocationHistory = srv
   .prefix('/invocation-histories')
@@ -58,8 +52,8 @@ export const utilityInvocationHistory = srv
               : undefined,
             search
               ? or(
-                  ilike(schema.utilityInvocationHistory.input, `%${search}%`),
-                  ilike(schema.utilityInvocationHistory.options, `%${search}%`),
+                  sql`LOWER(CAST(${schema.utilityInvocationHistory.input} AS TEXT)) ILIKE LOWER(${`%${search}%`})`,
+                  sql`LOWER(CAST(${schema.utilityInvocationHistory.options} AS TEXT)) ILIKE LOWER(${`%${search}%`})`,
                 )
               : undefined,
             context.parsedCursor

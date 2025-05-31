@@ -1,20 +1,11 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const llmChatProfileSchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  lastUpdatedAt: z.date().nullable(),
-  name: z.string(),
-  provider: z.string(),
-  configuration: z.object({ baseUrl: z.string().optional() }),
-  credentials: z.object({ apiKey: z.string().optional() }),
-  model: z.string(),
-  additionalSystemPrompt: z.string().nullable(),
-})
+const llmChatProfileSchema = createSelectSchema(schema.llmChatProfile)
 
 export const llmChatProfile = srv
   .prefix('/profiles')

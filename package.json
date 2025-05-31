@@ -34,8 +34,10 @@
     "@tailwindcss/oxide",
     "devu",
     "devu-api",
+    "esbuild",
     "onnxruntime-node",
     "protobufjs",
-    "unrs-resolver"
+    "unrs-resolver",
+    "vue-demi"
   ]
 }

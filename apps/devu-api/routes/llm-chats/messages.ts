@@ -1,30 +1,17 @@
-import type { IterableReadableStream } from '@langchain/core/utils/stream'
+import type { StreamTextResult } from 'ai'
 import type { InferSelectModel } from 'drizzle-orm'
 import type { SnakeCase } from 'scule'
 import type { DB } from '@/database'
 import { Buffer } from 'node:buffer'
-import { AIMessage, AIMessageChunk, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages'
-import { Tool } from '@langchain/core/tools'
-import { concat } from '@langchain/core/utils/stream'
 import { eventIterator, ORPCError } from '@orpc/server'
+import { APICallError } from 'ai'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 import { and, createId, desc, eq, min, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
-import { createLLMChatClient } from '@/utils/create-llm-chat-client'
+import { llmChat } from '@/utils/llm-chat'
 
-const llmChatMessageSchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  chatId: z.uuidv7(),
-  parentId: z.uuidv7().nullable(),
-  role: z.string(),
-  content: z.string(),
-  branch: z.uuidv7(),
-  metadata: z.object({
-    provider: z.string().optional(),
-    model: z.string().optional(),
-  }),
-})
+const llmChatMessageSchema = createSelectSchema(schema.llmChatMessage)
 
 const activeGenerations = new Set<string>()
 
@@ -42,6 +29,9 @@ export const llmChatMessage = srv
         chatId: z.uuidv7(),
         parentId: z.uuidv7().nullish(),
         profileId: z.uuidv7(),
+        tools: z.object({
+          invokeUtility: z.boolean().optional(),
+        }).optional(),
       }))
       .output(eventIterator(z.union([
         z.object({ action: z.literal('push_message'), data: llmChatMessageSchema }),
@@ -68,11 +58,11 @@ export const llmChatMessage = srv
           throw new ORPCError('NOT_FOUND', { message: 'Profile not found' })
         }
 
-        const { client: llmClient, tools } = createLLMChatClient.withTools(profile, ['utility', 'codeSnippet'])
+        const agent = llmChat.createAgent(profile, { tools: input.tools })
 
         let humanMessage: Message | undefined
         let assistantMessage: Message | undefined
-        let llmStream: IterableReadableStream<string> | IterableReadableStream<AIMessageChunk> | undefined
+        let llmStream: StreamTextResult<any, unknown> | undefined
         let llmStreamFinished = false
         let newChatTitle: string | undefined
 
@@ -109,102 +99,68 @@ export const llmChatMessage = srv
           }
           yield { action: 'push_message', data: assistantMessage }
 
-          // Load all existing messages by provided branch to construct history
+          // Load existing messages by provided branch to construct history explicitly
           const { data: messages } = await loadMessages(context.db, chatId, {
             branch: humanMessageParent?.branch || null,
-            limit: -1,
+            limit: 10,
           })
           const history = [
-            ...createSystemMessages(profile),
-            ...messages.map(msg => msg.role === 'human'
-              ? new HumanMessage(msg.content)
-              : new AIMessage(msg.content),
+            ...messages.map(message => message.role === 'human'
+              ? new llmChat.Message({ role: 'user', content: message.content })
+              : new llmChat.Message({ role: 'assistant', content: message.content }),
             ),
           ]
 
           activeGenerations.add(assistantMessage.id)
 
-          const MAX_TOOL_CALL_ITERATIONS = 5 // Prevent infinite loops
-          let currentToolCallIteration = 0
-          while (currentToolCallIteration < MAX_TOOL_CALL_ITERATIONS) {
-            const llmStream = await llmClient.stream(history)
-            let assistantToolCallMessage: AIMessageChunk | undefined
-
-            for await (const chunk of llmStream) {
-              if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
-                return
-              }
-
-              const toolCallChunks = chunk instanceof AIMessageChunk ? chunk.tool_call_chunks : []
-              if (toolCallChunks && toolCallChunks.length > 0) {
-                if (!assistantToolCallMessage) {
-                  for (const toolCallChunk of toolCallChunks) {
-                    yield { action: 'tool_invoke', data: toolCallChunk.name || '' }
-                  }
-                }
-                assistantToolCallMessage = assistantToolCallMessage !== undefined ? concat(assistantToolCallMessage, chunk) : chunk
-              }
-              else {
-                assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
-                yield {
-                  action: 'append_message_content_chunk',
-                  data: {
-                    messageId: assistantMessage.id,
-                    chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
-                  },
-                }
-              }
+          llmStream = await agent.stream(history, {
+            resourceId: chat.id,
+            threadId: branch,
+            abortSignal: signal,
+          })
+          for await (const chunk of llmStream.fullStream) {
+            if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
+              return
             }
 
-            if (assistantToolCallMessage?.tool_calls && assistantToolCallMessage.tool_calls.length > 0) {
-              history.push(assistantToolCallMessage)
-
-              for (const toolCall of assistantToolCallMessage.tool_calls) {
-                console.info(`Executing tool '${toolCall.name}' with args: ${JSON.stringify(toolCall.args)}`)
-                let toolResult: any
-                try {
-                  const tool = tools.find(tool => (tool instanceof Tool ? tool.name : tool.function.name) === toolCall.name)
-                  if (tool) {
-                    toolResult = await tool.invoke(toolCall.args)
-                  }
-                  else {
-                    toolResult = `Error: '${toolCall.name}' tool not found.`
-                  }
-                }
-                catch (error) {
-                  console.error(`Error while executing tool '${toolCall.name}':`, error)
-                  toolResult = `Error: ${error instanceof Error ? error.message : String(error)}`
-                }
-
-                let stringifiedToolResult: string
-                try {
-                  stringifiedToolResult = JSON.stringify(toolResult)
-                }
-                catch {
-                  stringifiedToolResult = String(toolResult)
-                }
-                history.push(new ToolMessage({
-                  tool_call_id: toolCall.id || '',
-                  content: stringifiedToolResult,
-                  name: toolCall.name,
-                }))
+            if (chunk.type === 'text-delta') {
+              assistantMessage.content += chunk.textDelta
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: chunk.textDelta,
+                },
               }
-
-              currentToolCallIteration++
             }
-            else {
-              break
+            if (chunk.type === 'tool-call') {
+              yield {
+                action: 'tool_invoke',
+                data: chunk.toolName,
+              }
+            }
+            if (chunk.type === 'error') {
+              const error = chunk.error
+              const errorMessage = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-destructive-foreground">${error instanceof Error ? (error instanceof APICallError ? (error.responseBody || error.message) : error.message) : String(error)}</p>\n`
+              assistantMessage.content += assistantMessage.content.length > 0 ? `\n\n${errorMessage}` : errorMessage
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: errorMessage,
+                },
+              }
             }
           }
 
           llmStreamFinished = true
           if (!chat.title) {
-            const result = await llmClient.invoke([
+            const result = await agent.generate([
               ...history,
-              new AIMessage(assistantMessage.content),
-              new HumanMessage('SYSTEM INSTRUCTION:\nGenerate a concise title for this conversation. Reply with only the title, avoiding special characters, formatting, or prefixes like \'A conversation...\'. Maximum length: 100 characters.'),
+              new llmChat.Message({ role: 'assistant', content: assistantMessage.content }),
+              new llmChat.Message({ role: 'user', content: 'SYSTEM INSTRUCTION:\nGenerate a concise title for this conversation. Reply with only the title, avoiding special characters, formatting, or prefixes like \'A conversation...\'. Maximum length: 100 characters.' }),
             ])
-            const rawTitle = (typeof result === 'string' ? result : result?.content?.toString() ?? '')
+            const rawTitle = result.text
               .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think>...</think> blocks if any
               .trim()
             const isValid
@@ -221,16 +177,14 @@ export const llmChatMessage = srv
           }
         }
         catch (error) {
-          console.error(error)
           throw new ORPCError('INTERNAL_SERVER_ERROR', {
-            message: error instanceof Error ? error.message : String(error),
+            message: error instanceof Error ? (error instanceof APICallError ? (error.responseBody || error.message) : error.message) : String(error),
           })
         }
         finally {
           if (!llmStreamFinished) {
-            llmStream?.cancel()
             if (assistantMessage) {
-              const chunk = '\n\n<p class="text-muted-foreground">Stream stopped.</p>'
+              const chunk = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-muted-foreground">Stream stopped.</p>\n`
               if (activeGenerations.has(assistantMessage.id)) {
                 activeGenerations.delete(assistantMessage.id)
               }
@@ -312,6 +266,9 @@ export const llmChatMessage = srv
       .input(z.object({
         id: z.uuidv7(),
         profileId: z.uuidv7(),
+        tools: z.object({
+          invokeUtility: z.boolean().optional(),
+        }).optional(),
       }))
       .output(eventIterator(z.union([
         z.object({ action: z.literal('push_message'), data: llmChatMessageSchema }),
@@ -346,10 +303,10 @@ export const llmChatMessage = srv
           throw new ORPCError('NOT_FOUND', { message: 'Parent message not found' })
         }
 
-        const { client: llmClient, tools } = createLLMChatClient.withTools(profile)
+        const agent = llmChat.createAgent(profile, { tools: input.tools })
 
         let assistantMessage: Message | undefined
-        let llmStream: IterableReadableStream<string> | IterableReadableStream<AIMessageChunk> | undefined
+        let llmStream: StreamTextResult<any, unknown> | undefined
         let llmStreamFinished = false
 
         try {
@@ -373,110 +330,74 @@ export const llmChatMessage = srv
           }
           yield { action: 'push_message', data: assistantMessage }
 
-          // Load all existing messages by provided branch to construct history
+          // Load existing messages by provided branch to construct history explicitly
           const { data: messages } = await loadMessages(context.db, message.chatId, {
             branch: message.branch,
-            limit: -1,
+            limit: 10,
           })
           const historyEndIndex = messages.findIndex(msg => msg.id === assistantMessageParent.id)
           const history = [
-            ...createSystemMessages(profile),
             ...messages
               .slice(0, historyEndIndex + 1) // Include the parent message
-              .map(msg => msg.role === 'human'
-                ? new HumanMessage(msg.content)
-                : new AIMessage(msg.content),
+              .map(message => message.role === 'human'
+                ? new llmChat.Message({ role: 'user', content: message.content })
+                : new llmChat.Message({ role: 'assistant', content: message.content }),
               ),
           ]
 
           activeGenerations.add(assistantMessage.id)
 
-          const MAX_TOOL_CALL_ITERATIONS = 5 // Prevent infinite loops
-          let currentToolCallIteration = 0
-          while (currentToolCallIteration < MAX_TOOL_CALL_ITERATIONS) {
-            llmStream = await llmClient.stream(history)
-            let assistantToolCallMessage: AIMessageChunk | undefined
-
-            for await (const chunk of llmStream) {
-              if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
-                return
-              }
-
-              const toolCallChunks = chunk instanceof AIMessageChunk ? chunk.tool_call_chunks : []
-              if (toolCallChunks && toolCallChunks.length > 0) {
-                if (!assistantToolCallMessage) {
-                  for (const toolCallChunk of toolCallChunks) {
-                    yield { action: 'tool_invoke', data: toolCallChunk.name || '' }
-                  }
-                }
-                assistantToolCallMessage = assistantToolCallMessage !== undefined ? concat(assistantToolCallMessage, chunk) : chunk
-              }
-              else {
-                assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
-                yield {
-                  action: 'append_message_content_chunk',
-                  data: {
-                    messageId: assistantMessage.id,
-                    chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
-                  },
-                }
-              }
+          llmStream = await agent.stream(history, {
+            resourceId: message.chatId,
+            threadId: branch,
+            abortSignal: signal,
+          })
+          for await (const chunk of llmStream.fullStream) {
+            if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
+              return
             }
 
-            if (assistantToolCallMessage?.tool_calls && assistantToolCallMessage.tool_calls.length > 0) {
-              history.push(assistantToolCallMessage)
-
-              for (const toolCall of assistantToolCallMessage.tool_calls) {
-                console.info(`Executing tool '${toolCall.name}' with args: ${JSON.stringify(toolCall.args)}`)
-                let toolResult: any
-                try {
-                  const tool = tools.find(tool => (tool instanceof Tool ? tool.name : tool.function.name) === toolCall.name)
-                  if (tool) {
-                    toolResult = await tool.invoke(toolCall.args)
-                  }
-                  else {
-                    toolResult = `Error: '${toolCall.name}' tool not found.`
-                  }
-                }
-                catch (error) {
-                  console.error(`Error while executing tool '${toolCall.name}':`, error)
-                  toolResult = `Error: ${error instanceof Error ? error.message : String(error)}`
-                }
-
-                let stringifiedToolResult: string
-                try {
-                  stringifiedToolResult = JSON.stringify(toolResult)
-                }
-                catch {
-                  stringifiedToolResult = String(toolResult)
-                }
-                history.push(new ToolMessage({
-                  tool_call_id: toolCall.id || '',
-                  content: stringifiedToolResult,
-                  name: toolCall.name,
-                }))
+            if (chunk.type === 'text-delta') {
+              assistantMessage.content += chunk.textDelta
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: chunk.textDelta,
+                },
               }
-
-              currentToolCallIteration++
             }
-            else {
-              break
+            if (chunk.type === 'tool-call') {
+              yield {
+                action: 'tool_invoke',
+                data: chunk.toolName,
+              }
+            }
+            if (chunk.type === 'error') {
+              const error = chunk.error
+              const errorMessage = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-destructive-foreground">${error instanceof Error ? (error instanceof APICallError ? (error.responseBody || error.message) : error.message) : String(error)}</p>\n`
+              assistantMessage.content += assistantMessage.content.length > 0 ? `\n\n${errorMessage}` : errorMessage
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: errorMessage,
+                },
+              }
             }
           }
 
           llmStreamFinished = true
         }
         catch (error) {
-          console.error(error)
           throw new ORPCError('INTERNAL_SERVER_ERROR', {
-            message: error instanceof Error ? error.message : String(error),
+            message: error instanceof Error ? (error instanceof APICallError ? (error.responseBody || error.message) : error.message) : String(error),
           })
         }
         finally {
           if (!llmStreamFinished) {
-            llmStream?.cancel()
             if (assistantMessage) {
-              const chunk = '\n\n<p class="text-muted-foreground">Stream stopped.</p>'
+              const chunk = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-muted-foreground">Stream stopped.</p>\n`
               if (activeGenerations.has(assistantMessage.id)) {
                 activeGenerations.delete(assistantMessage.id)
               }
@@ -501,6 +422,9 @@ export const llmChatMessage = srv
         id: z.uuidv7(),
         content: z.string().min(1),
         profileId: z.uuidv7(),
+        tools: z.object({
+          invokeUtility: z.boolean().optional(),
+        }).optional(),
       }))
       .output(eventIterator(z.union([
         z.object({ action: z.literal('push_message'), data: llmChatMessageSchema }),
@@ -532,11 +456,11 @@ export const llmChatMessage = srv
           ? await context.db.query.llmChatMessage.findFirst({ where: (field, { eq }) => eq(field.id, message.parentId!) })
           : undefined
 
-        const { client: llmClient, tools } = createLLMChatClient.withTools(profile)
+        const agent = llmChat.createAgent(profile, { tools: input.tools })
 
         let humanMessage: Message | undefined
         let assistantMessage: Message | undefined
-        let llmStream: IterableReadableStream<string> | IterableReadableStream<AIMessageChunk> | undefined
+        let llmStream: StreamTextResult<any, unknown> | undefined
         let llmStreamFinished = false
 
         try {
@@ -573,108 +497,72 @@ export const llmChatMessage = srv
           }
           yield { action: 'push_message', data: assistantMessage }
 
-          // Load all existing messages by provided branch to construct history
+          // Load existing messages by provided branch to construct history explicitly
           const { data: messages } = await loadMessages(context.db, message.chatId, {
             branch, // Use the new branch, updated human message will be included
-            limit: -1,
+            limit: 10,
           })
           const history = [
-            ...createSystemMessages(profile),
             ...messages
-              .map(msg => msg.role === 'human'
-                ? new HumanMessage(msg.content)
-                : new AIMessage(msg.content),
+              .map(message => message.role === 'human'
+                ? new llmChat.Message({ role: 'user', content: message.content })
+                : new llmChat.Message({ role: 'assistant', content: message.content }),
               ),
           ]
 
           activeGenerations.add(assistantMessage.id)
 
-          const MAX_TOOL_CALL_ITERATIONS = 5 // Prevent infinite loops
-          let currentToolCallIteration = 0
-          while (currentToolCallIteration < MAX_TOOL_CALL_ITERATIONS) {
-            const llmStream = await llmClient.stream(history)
-            let assistantToolCallMessage: AIMessageChunk | undefined
-
-            for await (const chunk of llmStream) {
-              if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
-                return
-              }
-
-              const toolCallChunks = chunk instanceof AIMessageChunk ? chunk.tool_call_chunks : []
-              if (toolCallChunks && toolCallChunks.length > 0) {
-                if (!assistantToolCallMessage) {
-                  for (const toolCallChunk of toolCallChunks) {
-                    yield { action: 'tool_invoke', data: toolCallChunk.name || '' }
-                  }
-                }
-                assistantToolCallMessage = assistantToolCallMessage !== undefined ? concat(assistantToolCallMessage, chunk) : chunk
-              }
-              else {
-                assistantMessage.content += typeof chunk === 'string' ? chunk : chunk.content.toString()
-                yield {
-                  action: 'append_message_content_chunk',
-                  data: {
-                    messageId: assistantMessage.id,
-                    chunk: typeof chunk === 'string' ? chunk : chunk.content.toString(),
-                  },
-                }
-              }
+          llmStream = await agent.stream(history, {
+            resourceId: message.chatId,
+            threadId: branch,
+            abortSignal: signal,
+          })
+          for await (const chunk of llmStream.fullStream) {
+            if (signal?.aborted || !activeGenerations.has(assistantMessage.id)) {
+              return
             }
 
-            if (assistantToolCallMessage?.tool_calls && assistantToolCallMessage.tool_calls.length > 0) {
-              history.push(assistantToolCallMessage)
-
-              for (const toolCall of assistantToolCallMessage.tool_calls) {
-                console.info(`Executing tool '${toolCall.name}' with args: ${JSON.stringify(toolCall.args)}`)
-                let toolResult: any
-                try {
-                  const tool = tools.find(tool => (tool instanceof Tool ? tool.name : tool.function.name) === toolCall.name)
-                  if (tool) {
-                    toolResult = await tool.invoke(toolCall.args)
-                  }
-                  else {
-                    toolResult = `Error: '${toolCall.name}' tool not found.`
-                  }
-                }
-                catch (error) {
-                  console.error(`Error while executing tool '${toolCall.name}':`, error)
-                  toolResult = `Error: ${error instanceof Error ? error.message : String(error)}`
-                }
-
-                let stringifiedToolResult: string
-                try {
-                  stringifiedToolResult = JSON.stringify(toolResult)
-                }
-                catch {
-                  stringifiedToolResult = String(toolResult)
-                }
-                history.push(new ToolMessage({
-                  tool_call_id: toolCall.id || '',
-                  content: stringifiedToolResult,
-                  name: toolCall.name,
-                }))
+            if (chunk.type === 'text-delta') {
+              assistantMessage.content += chunk.textDelta
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: chunk.textDelta,
+                },
               }
-
-              currentToolCallIteration++
             }
-            else {
-              break
+            if (chunk.type === 'tool-call') {
+              yield {
+                action: 'tool_invoke',
+                data: chunk.toolName,
+              }
+            }
+            if (chunk.type === 'error') {
+              const error = chunk.error
+              const errorMessage = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-destructive-foreground">${error instanceof Error ? (error instanceof APICallError ? (error.responseBody || error.message) : error.message) : String(error)}</p>\n`
+              assistantMessage.content += assistantMessage.content.length > 0 ? `\n\n${errorMessage}` : errorMessage
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: errorMessage,
+                },
+              }
             }
           }
 
           llmStreamFinished = true
         }
         catch (error) {
-          console.error(error)
           throw new ORPCError('INTERNAL_SERVER_ERROR', {
-            message: error instanceof Error ? error.message : String(error),
+            message: error instanceof Error ? (error instanceof APICallError ? (error.responseBody || error.message) : error.message) : String(error),
           })
         }
         finally {
           if (!llmStreamFinished) {
-            llmStream?.cancel()
             if (assistantMessage) {
-              const chunk = '\n\n<p class="text-muted-foreground">Stream stopped.</p>'
+              const chunk = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-muted-foreground">Stream stopped.</p>\n`
               if (activeGenerations.has(assistantMessage.id)) {
                 activeGenerations.delete(assistantMessage.id)
               }
@@ -960,66 +848,4 @@ export async function loadMessages(
     }
     throw new ORPCError('INTERNAL_SERVER_ERROR', { message: 'Error loading messages.' })
   }
-}
-
-function createSystemMessages(profile: InferSelectModel<typeof schema.llmChatProfile>) {
-  return [
-    new SystemMessage(`
-You are a user development assistant, ready to help with coding tasks, documentation, and more.
-You are integrated into a desktop application called Devu.
-
-# Devu
-
-<img align="right" src="apps/devu/public/icon-rounded.png" width="86" height="86" />
-
-**Your AI-Powered Development Utility**
-
-Devu is a versatile development utility that provides a suite of tools to enhance your coding workflow. It's built with Tauri, offering cross-platform support for Windows, macOS, and Linux.
-
-[![GitHub license](https://img.shields.io/github/license/Hrdtr/devu.svg)](https://github.com/Hrdtr/devu/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/Hrdtr/devu.svg)](https://github.com/Hrdtr/devu/releases)
-
-## Features
-
-- **LLM Chat:** Interact with large language models. Supports providers like Anthropic, Google GenAI, Ollama, and OpenAI.
-- **Code Playground:** Experiment with code snippets and execute them in a safe environment using Livecodes.
-- **Code Snippets:** Create, store, and manage reusable code snippets.
-- **Utilities:** Access a collection of useful development utilities such as code formatting, minification, and conversion.
-
-## Planned Features
-
-- **SSH Client**: A built-in SSH client for secure remote access.
-- **SFTP**: SFTP support for file transfer.
-- **API (REST, WS, etc.) Tester**: A tool to test and debug APIs.
-
-## Download and Installation
-
-Download the latest release from [https://github.com/Hrdtr/devu/releases](https://github.com/Hrdtr/devu/releases). Choose the correct binary/installer for your platform and architecture.
-
-## Contribution
-
-We welcome contributions to Devu! If you'd like to contribute, please follow these guidelines:
-
-- Report issues and suggest enhancements by creating [GitHub Issues](https://github.com/Hrdtr/devu).
-- Submit pull requests with clear descriptions of your changes.
-- Follow the project's coding standards and best practices.
-
-* Please adhere to the [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## Development
-
-To start the development environment, run the following commands:
-
-\`\`\`bash
-bun install
-bun dev
-\`\`\`
-
-## License
-
-This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
-
-${profile.additionalSystemPrompt ? `\n---\n${profile.additionalSystemPrompt}\n` : ''}`,
-    ),
-  ]
 }
