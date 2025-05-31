@@ -1,18 +1,11 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const codeSnippetSchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  lastUpdatedAt: z.date().nullable(),
-  name: z.string(),
-  language: z.string(),
-  code: z.string(),
-  notes: z.string().nullable(),
-})
+const codeSnippetSchema = createSelectSchema(schema.codeSnippet)
 
 export const codeSnippet = srv
   .prefix('/code-snippets')

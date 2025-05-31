@@ -136,7 +136,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['html-minifier-terser'],
   requiresInternet: false,
   tags: ['html', 'minification'],
   related: ['html-beautifier'],

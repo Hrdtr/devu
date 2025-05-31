@@ -1,16 +1,11 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const codePlaygroundExecutionHistorySchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  playground: z.string(),
-  code: z.string(),
-  output: z.any(),
-})
+const codePlaygroundExecutionHistorySchema = createSelectSchema(schema.codePlaygroundExecutionHistory)
 
 export const codePlaygroundExecutionHistory = srv
   .prefix('/execution-histories')

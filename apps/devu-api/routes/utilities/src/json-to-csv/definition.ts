@@ -114,7 +114,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['@json2csv/plainjs'],
   requiresInternet: false,
   tags: ['json', 'csv', 'converter'],
   related: ['csv-to-json'],

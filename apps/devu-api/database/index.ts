@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite/vector'
+import { createClient as createLibSQLClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/pglite'
 import { config } from '@/config'
 import * as schema from './schema'
@@ -20,26 +21,11 @@ import PGLiteVectorExtension from '../../../node_modules/@electric-sql/pglite/di
 import { mkdirSync } from 'node:fs'
 /* eslint-enable perfectionist/sort-imports, antfu/no-import-node-modules-by-path, antfu/no-import-dist */
 
-export {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gt,
-  gte,
-  ilike,
-  isNotNull,
-  isNull,
-  like,
-  lt,
-  lte,
-  max,
-  min,
-  ne,
-  or,
-  sql,
-} from 'drizzle-orm'
+export { and, asc, count, desc, eq, gt, gte, ilike, isNotNull, isNull, like, lt, lte, max, min, ne, or, sql } from 'drizzle-orm'
+
+const _libSQLClient = createLibSQLClient({
+  url: `file:${join(config.appDataDir, 'libsql.db')}`,
+})
 
 export type PGliteClient = PGlite & PGliteInterfaceExtensions<{ vector: typeof vector }>
 export type DB = ReturnType<typeof useDatabase>

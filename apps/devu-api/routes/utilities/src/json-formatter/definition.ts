@@ -46,7 +46,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: [],
   requiresInternet: false,
   tags: ['json', 'formatting'],
   related: [],

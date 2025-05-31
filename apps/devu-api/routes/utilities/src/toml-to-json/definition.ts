@@ -30,7 +30,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['@iarna/toml'],
   requiresInternet: false,
   tags: ['toml', 'json', 'converter'],
   related: ['json-to-toml'],

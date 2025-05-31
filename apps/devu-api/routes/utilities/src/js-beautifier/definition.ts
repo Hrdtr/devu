@@ -284,7 +284,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['js-beautify'],
   requiresInternet: false,
   tags: ['javascript', 'beautification'],
   related: ['js-minifier'],

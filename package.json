@@ -29,5 +29,15 @@
   "workspaces": [
     "apps/*",
     "packages/*"
+  ],
+  "trustedDependencies": [
+    "@tailwindcss/oxide",
+    "devu",
+    "devu-api",
+    "esbuild",
+    "onnxruntime-node",
+    "protobufjs",
+    "unrs-resolver",
+    "vue-demi"
   ]
 }
