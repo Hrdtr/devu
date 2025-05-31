@@ -24,7 +24,7 @@ const { profiles: _profiles, createProfile, updateProfile } = useLLMChatProfile(
 const providers = [
   { id: 'anthropic', name: 'Anthropic', modelListRefUrl: 'https://docs.anthropic.com/en/docs/about-claude/models/overview', apiKeyRefUrl: 'https://console.anthropic.com/settings/keys' },
   { id: 'cohere', name: 'Cohere', modelListRefUrl: 'https://docs.cohere.com/v2/docs/models', apiKeyRefUrl: 'https://dashboard.cohere.com/api-keys' },
-  { id: 'deepseek', name: 'Cohere', modelListRefUrl: 'https://api-docs.deepseek.com/quick_start/pricing', apiKeyRefUrl: 'https://platform.deepseek.com/api_keys' },
+  { id: 'deepseek', name: 'DeepSeek', modelListRefUrl: 'https://api-docs.deepseek.com/quick_start/pricing', apiKeyRefUrl: 'https://platform.deepseek.com/api_keys' },
   { id: 'google-generative-ai', name: 'Google Generative AI', modelListRefUrl: 'https://ai.google.dev/gemini-api/docs/models', apiKeyRefUrl: 'https://aistudio.google.com/apikey' },
   { id: 'mistralai', name: 'MistralAI', modelListRefUrl: 'https://docs.mistral.ai/getting-started/models/models_overview', apiKeyRefUrl: 'https://console.mistral.ai/api-keys' },
   { id: 'openai', name: 'OpenAI', modelListRefUrl: 'https://platform.openai.com/docs/models', apiKeyRefUrl: 'https://platform.openai.com/settings/organization/api-keys' },
