@@ -50,6 +50,7 @@ export async function createClient(config: Config, migrationConfig?: MigrationCo
     }
     catch (err) {
       delete clients[config.url] // allow retry on next call
+      delete clientsPromise[config.url]
       throw err
     }
   })()
