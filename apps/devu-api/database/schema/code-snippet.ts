@@ -12,7 +12,7 @@ export const codeSnippet = sqliteTable('code_snippet', {
   notes: text('notes'),
 }, table => [
   index('code_snippet_created_at_idx').on(table.createdAt),
-  index('code_snippet_last_updated_at').on(table.createdAt),
+  index('code_snippet_last_updated_at').on(table.lastUpdatedAt),
   index('code_snippet_name_idx').on(table.name),
   index('code_snippet_language_idx').on(table.language),
 ])

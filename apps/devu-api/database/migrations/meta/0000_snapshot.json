@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "fd9e4bdb-e1de-44fd-9288-fca038f9eb8a",
+  "id": "47d46028-d04c-4e7a-800f-d11fe4c56fe6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "code_snippet": {
@@ -70,7 +70,7 @@
         "code_snippet_last_updated_at": {
           "name": "code_snippet_last_updated_at",
           "columns": [
-            "created_at"
+            "last_updated_at"
           ],
           "isUnique": false
         },

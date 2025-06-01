@@ -9,7 +9,7 @@ CREATE TABLE `code_snippet` (
 );
 --> statement-breakpoint
 CREATE INDEX `code_snippet_created_at_idx` ON `code_snippet` (`created_at`);--> statement-breakpoint
-CREATE INDEX `code_snippet_last_updated_at` ON `code_snippet` (`created_at`);--> statement-breakpoint
+CREATE INDEX `code_snippet_last_updated_at` ON `code_snippet` (`last_updated_at`);--> statement-breakpoint
 CREATE INDEX `code_snippet_name_idx` ON `code_snippet` (`name`);--> statement-breakpoint
 CREATE INDEX `code_snippet_language_idx` ON `code_snippet` (`language`);--> statement-breakpoint
 CREATE TABLE `llm_chat` (
