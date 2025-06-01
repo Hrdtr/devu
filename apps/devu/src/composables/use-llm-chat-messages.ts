@@ -28,11 +28,13 @@ export function useLLMChatMessages(
     nextCursor: null,
   })
 
-  watch(() => [...messages.value.activeBranches], (value) => {
+  watch(() => [...messages.value.activeBranches], (value, oldValue) => {
     if (messageState.value !== 'idle') {
       return
     }
-    updateChat(toValue(chatId), { activeBranches: value })
+    if (value && oldValue?.length !== 0 && JSON.stringify(value) !== JSON.stringify(oldValue)) {
+      updateChat(toValue(chatId), { activeBranches: value })
+    }
   }, { deep: true })
 
   const loadMessages = async (untilId?: number | string) => {

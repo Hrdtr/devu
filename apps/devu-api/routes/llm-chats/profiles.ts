@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
 import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
-import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
+import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
 const llmChatProfileSchema = createSelectSchema(schema.llmChatProfile)
@@ -90,7 +90,7 @@ export const llmChatProfile = srv
                 )
               : undefined,
             search
-              ? ilike(schema.llmChatProfile.name, `%${search}%`)
+              ? sql`${schema.llmChatProfile.name} LIKE ${`%${search}%`} COLLATE NOCASE`
               : undefined,
           ),
           orderBy: [desc(schema.llmChatProfile.lastUpdatedAt), desc(schema.llmChatProfile.id)],

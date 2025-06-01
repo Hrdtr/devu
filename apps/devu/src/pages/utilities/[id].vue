@@ -113,7 +113,7 @@ onMounted(fetchInvocationHistories)
             <div class="flex-1 overflow-hidden">
               <UtilityInvocationHistories
                 :utility="String(route.params.id)"
-                class="[&_>_div.search-wrapper]:px-6 [&_>_div_.overflow-y-auto]:p-6 [&_>_div_.overflow-y-auto]:pt-0"
+                class="[&_>_div.search-wrapper]:px-6 [&_>_div.search-wrapper]:pt-4 [&_>_div_.overflow-y-auto]:p-6 [&_>_div_.overflow-y-auto]:pt-0 [&_>_div_.overflow-y-auto]:!max-h-[40vh]"
                 @restore="(value) => {
                   inputRef?.setValue(value.input)
                   if (value.options) {

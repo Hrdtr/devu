@@ -52,8 +52,8 @@ export const utilityInvocationHistory = srv
               : undefined,
             search
               ? or(
-                  sql`LOWER(CAST(${schema.utilityInvocationHistory.input} AS TEXT)) ILIKE LOWER(${`%${search}%`})`,
-                  sql`LOWER(CAST(${schema.utilityInvocationHistory.options} AS TEXT)) ILIKE LOWER(${`%${search}%`})`,
+                  sql`LOWER(CAST(${schema.utilityInvocationHistory.input} AS TEXT)) LIKE LOWER(${`%${search}%`})`,
+                  sql`LOWER(CAST(${schema.utilityInvocationHistory.options} AS TEXT)) LIKE LOWER(${`%${search}%`})`,
                 )
               : undefined,
             context.parsedCursor

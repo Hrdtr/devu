@@ -81,7 +81,7 @@ async function deleteInvocationHistory(id: string) {
       />
     </div>
     <ListboxRoot highlight-on-hover>
-      <ListboxContent ref="scrollElement" class="flex-1 w-full h-full max-h-[50vh] overflow-y-auto" :class="!histories ? '!min-h-[50vh]' : ''">
+      <ListboxContent ref="scrollElement" class="flex-1 w-full h-full max-h-96 overflow-y-auto" :class="!histories ? '!min-h-96' : ''">
         <template v-if="histories">
           <template v-if="histories.data.length === 0">
             <p class="text-sm text-center text-muted-foreground">

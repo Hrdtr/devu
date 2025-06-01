@@ -60,9 +60,11 @@ onMounted(async () => {
 const submit = handleSubmit(async (formValues) => {
   if (route.params.id !== 'new') {
     await updateCodeSnippet(String(route.params.id), formValues)
+    toast.success('Code snippet updated!')
   }
   else {
     const snippet = await createCodeSnippet(formValues)
+    toast.success('Code snippet saved!')
     resetForm()
     router.replace(`/snippets/${snippet?.id}`)
   }

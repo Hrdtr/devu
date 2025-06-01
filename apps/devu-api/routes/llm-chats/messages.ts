@@ -86,7 +86,7 @@ export const llmChatMessage = srv
 
           assistantMessage = {
             id: assistantMessageId,
-            createdAt: new Date(),
+            createdAt: new Date(Date.now() + 1000), // Add 1 second to make sure it's after the human message
             chatId: chat.id,
             parentId: humanMessageId,
             role: 'assistant',
@@ -317,7 +317,7 @@ export const llmChatMessage = srv
 
           assistantMessage = {
             id: assistantMessageId,
-            createdAt: new Date(),
+            createdAt: new Date(Date.now() + 1000), // Add 1 second to make sure it's after the human message
             chatId: message.chatId,
             parentId: assistantMessageParent.id,
             role: 'assistant',
@@ -484,7 +484,7 @@ export const llmChatMessage = srv
 
           assistantMessage = {
             id: assistantMessageId,
-            createdAt: new Date(),
+            createdAt: new Date(Date.now() + 1000), // Add 1 second to make sure it's after the human message
             chatId: message.chatId,
             parentId: humanMessageId,
             role: 'assistant',
@@ -809,8 +809,7 @@ export async function loadMessages(
 `
 
     // 3. Execute Query
-    const fetchedResult = await db.execute<SnakeCasedPropertiesDeep<Message>>(messagesQuery)
-    const messagesInPage = fetchedResult.rows
+    const messagesInPage = await db.all<SnakeCasedPropertiesDeep<Message & { metadata: string }>>(messagesQuery)
 
     // 4. Process Results and Determine Next Cursor
     if (messagesInPage && messagesInPage.length > 0) {
@@ -831,10 +830,7 @@ export async function loadMessages(
         role: msg.role,
         content: msg.content,
         branch: msg.branch,
-        metadata: {
-          provider: msg.metadata.provider,
-          model: msg.metadata.model,
-        },
+        metadata: JSON.parse(msg.metadata),
       }))
     }
 

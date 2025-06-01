@@ -4,26 +4,38 @@ import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
-import { llmChatEmbeddingProfile } from './embedding-profiles'
-import { llmChatMessage } from './messages'
-import { llmChatProfile } from './profiles'
 
-const llmChatSchema = createSelectSchema(schema.llmChat)
+const llmChatEmbeddingProfileSchema = createSelectSchema(schema.llmChatEmbeddingProfile)
 
-export const llmChat = srv
-  .prefix('/llm-chats')
+export const llmChatEmbeddingProfile = srv
+  .prefix('/embedding-profiles')
   .router({
     create: defineRoute({
       summary: 'Create',
       method: 'POST',
       path: '/',
-      tags: ['LLM Chat'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
-      .output(llmChatSchema)
-      .handler(async ({ context }) => {
+      .input(z.object({
+        name: z.string().min(1),
+        provider: z.string().min(1),
+        configuration: z.object({ baseUrl: z.string().min(1).optional() }),
+        credentials: z.object({ apiKey: z.string().min(1).optional() }),
+        model: z.string().min(1),
+      }))
+      .output(llmChatEmbeddingProfileSchema)
+      .handler(async ({ context, input }) => {
+        const { name, provider, configuration, credentials, model } = input
         const data = await context.db
-          .insert(schema.llmChat)
-          .values({ id: createId(), rootMessageId: createId() })
+          .insert(schema.llmChatEmbeddingProfile)
+          .values({
+            id: createId(),
+            name,
+            provider,
+            configuration,
+            credentials,
+            model,
+          })
           .returning()
           .then(res => res[0]!)
 
@@ -34,7 +46,7 @@ export const llmChat = srv
       summary: 'List',
       method: 'GET',
       path: '/',
-      tags: ['LLM Chat'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({
         search: z.string().nullish(),
@@ -42,7 +54,7 @@ export const llmChat = srv
         cursor: z.string().min(1).nullish(),
       }))
       .output(z.object({
-        data: llmChatSchema.array(),
+        data: llmChatEmbeddingProfileSchema.array(),
         nextCursor: z.string().nullable(),
       }))
       .use(async ({ next }, input) => {
@@ -64,22 +76,22 @@ export const llmChat = srv
       .handler(async ({ context, input }) => {
         const { search, limit } = input
 
-        const data = await context.db.query.llmChat.findMany({
+        const data = await context.db.query.llmChatEmbeddingProfile.findMany({
           where: and(
             context.parsedCursor
               ? or(
-                  lt(schema.llmChat.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
+                  lt(schema.llmChatEmbeddingProfile.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
                   and(
-                    eq(schema.llmChat.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
-                    lt(schema.llmChat.id, context.parsedCursor.id),
+                    eq(schema.llmChatEmbeddingProfile.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
+                    lt(schema.llmChatEmbeddingProfile.id, context.parsedCursor.id),
                   ),
                 )
               : undefined,
             search
-              ? sql`${schema.llmChat.title} LIKE ${`%${search}%`} COLLATE NOCASE`
+              ? sql`${schema.llmChatEmbeddingProfile.name} LIKE ${`%${search}%`} COLLATE NOCASE`
               : undefined,
           ),
-          orderBy: [desc(schema.llmChat.lastUpdatedAt), desc(schema.llmChat.id)],
+          orderBy: [desc(schema.llmChatEmbeddingProfile.lastUpdatedAt), desc(schema.llmChatEmbeddingProfile.id)],
           limit: limit === -1 ? undefined : limit,
         })
 
@@ -102,18 +114,18 @@ export const llmChat = srv
       summary: 'Retrieve',
       method: 'GET',
       path: '/{id}',
-      tags: ['LLM Chat'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({ id: z.uuidv7() }))
-      .output(llmChatSchema)
+      .output(llmChatEmbeddingProfileSchema)
       .handler(async ({ context, input }) => {
         const { id } = input
 
-        const data = await context.db.query.llmChat.findFirst({
-          where: eq(schema.llmChat.id, id),
+        const data = await context.db.query.llmChatEmbeddingProfile.findFirst({
+          where: eq(schema.llmChatEmbeddingProfile.id, id),
         })
         if (!data) {
-          throw new ORPCError('NOT_FOUND', { message: 'Chat not found.' })
+          throw new ORPCError('NOT_FOUND', { message: 'Embedding Profile not found.' })
         }
 
         return data
@@ -123,33 +135,40 @@ export const llmChat = srv
       summary: 'Update',
       method: 'PATCH',
       path: '/{id}',
-      tags: ['LLM Chat'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({
         id: z.uuidv7(),
-        title: z.string().min(1).nullish(),
-        activeBranches: z.string().array().min(1).optional(),
+        ...z.object({
+          name: z.string().min(1),
+          provider: z.string().min(1),
+          configuration: z.object({ baseUrl: z.string().min(1).optional() }),
+          credentials: z.object({ apiKey: z.string().min(1).optional() }),
+          model: z.string().min(1),
+        }).partial().shape,
       }))
-      .output(llmChatSchema)
+      .output(llmChatEmbeddingProfileSchema)
       .handler(async ({ context, input }) => {
-        const { id, title, activeBranches } = input
+        const { id, name, provider, configuration, credentials, model } = input
 
-        const chat = await context.db.query.llmChat.findFirst({
-          where: eq(schema.llmChat.id, id),
+        const profile = await context.db.query.llmChatEmbeddingProfile.findFirst({
+          where: eq(schema.llmChatEmbeddingProfile.id, id),
           columns: { id: true },
         })
-        if (!chat) {
-          throw new ORPCError('NOT_FOUND', { message: 'Chat not found.' })
+        if (!profile) {
+          throw new ORPCError('NOT_FOUND', { message: 'Embedding Profile not found.' })
         }
 
         const data = await context.db
-          .update(schema.llmChat)
+          .update(schema.llmChatEmbeddingProfile)
           .set({
-            lastUpdatedAt: new Date(),
-            title,
-            activeBranches,
+            name,
+            provider,
+            configuration,
+            credentials,
+            model,
           })
-          .where(eq(schema.llmChat.id, chat.id))
+          .where(eq(schema.llmChatEmbeddingProfile.id, profile.id))
           .returning()
           .then(res => res[0]!)
 
@@ -160,7 +179,7 @@ export const llmChat = srv
       summary: 'Delete',
       method: 'DELETE',
       path: '/{id}',
-      tags: ['LLM Chat'],
+      tags: ['LLM Chat: Embedding Profile'],
       successStatus: 204,
     }, os => os
       .input(z.object({ id: z.uuidv7() }))
@@ -168,22 +187,18 @@ export const llmChat = srv
       .handler(async ({ context, input }) => {
         const { id } = input
 
-        const chat = await context.db.query.llmChat.findFirst({
-          where: eq(schema.llmChat.id, id),
+        const profile = await context.db.query.llmChatEmbeddingProfile.findFirst({
+          where: eq(schema.llmChatEmbeddingProfile.id, id),
           columns: { id: true },
         })
-        if (!chat) {
-          throw new ORPCError('NOT_FOUND', { message: 'Chat not found.' })
+        if (!profile) {
+          throw new ORPCError('NOT_FOUND', { message: 'Embedding Profile not found.' })
         }
 
         await context.db
-          .delete(schema.llmChat)
-          .where(eq(schema.llmChat.id, chat.id))
+          .delete(schema.llmChatEmbeddingProfile)
+          .where(eq(schema.llmChatEmbeddingProfile.id, profile.id))
 
         return null
       })),
-
-    profile: llmChatProfile,
-    message: llmChatMessage,
-    embeddingProfile: llmChatEmbeddingProfile,
   })

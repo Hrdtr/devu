@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
 import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
-import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
+import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
 const codeSnippetSchema = createSelectSchema(schema.codeSnippet)
@@ -76,8 +76,8 @@ export const codeSnippet = srv
               : undefined,
             search
               ? or(
-                  ilike(schema.codeSnippet.name, `%${search}%`),
-                  ilike(schema.codeSnippet.code, `%${search}%`),
+                  sql`${schema.codeSnippet.name} LIKE ${`%${search}%`} COLLATE NOCASE`,
+                  sql`${schema.codeSnippet.code} LIKE ${`%${search}%`} COLLATE NOCASE`,
                 )
               : undefined,
             context.parsedCursor

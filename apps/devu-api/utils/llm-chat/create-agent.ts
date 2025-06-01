@@ -5,6 +5,8 @@ import { Agent } from '@mastra/core'
 import { LibSQLStore, LibSQLVector } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
 import { simulateStreamingMiddleware, wrapLanguageModel } from 'ai'
+import { config } from '@/config'
+import { useLLMEmbeddingModel } from '@/utils/use-llm-embedding-model'
 import { useLLMLanguageModel } from '@/utils/use-llm-language-model'
 import { useLLMProvider } from '@/utils/use-llm-provider'
 import { invokeUtility } from './tools'
@@ -18,6 +20,7 @@ export function createAgent<
 >(
   profile: InferSelectModel<typeof schema.llmChatProfile>,
   options: {
+    embeddingProfile?: InferSelectModel<typeof schema.llmChatEmbeddingProfile>
     tools?: {
       invokeUtility?: InvokeUtility
     }
@@ -33,9 +36,8 @@ export function createAgent<
     credentials: profile.credentials,
     configuration: profile.configuration,
   })
-
   let model = useLLMLanguageModel(profile.model, provider)
-  // Ollama doesn't support streaming when using tools
+  // Ollama provider doesn't support streaming when using tools
   // See: https://github.com/sgomez/ollama-ai-provider/issues/40
   if (profile.provider === 'ollama' && Object.keys(tools).length > 0) {
     model = wrapLanguageModel({
@@ -44,14 +46,24 @@ export function createAgent<
     })
   }
 
+  const embeddingModelProvider = options.embeddingProfile
+    ? useLLMProvider(options.embeddingProfile.provider as LLMProviderId, {
+        credentials: options.embeddingProfile.credentials,
+        configuration: options.embeddingProfile.configuration,
+      })
+    : undefined
+  const embeddingModel = options.embeddingProfile && embeddingModelProvider
+    ? useLLMEmbeddingModel(options.embeddingProfile.model, embeddingModelProvider)
+    : undefined
+
   return new Agent({
     name: 'Devu\'s User Assistant',
     model,
     tools,
     memory: new Memory({
-      storage: new LibSQLStore({ url: ':memory:' }),
-      vector: new LibSQLVector({ connectionUrl: ':memory:' }),
-      // embedder: fastembed,
+      storage: new LibSQLStore({ url: `file:${config.dbFilePath.llmAgentsMemory}` }),
+      vector: new LibSQLVector({ connectionUrl: `file:${config.dbFilePath.llmAgentsMemory}` }),
+      embedder: embeddingModel,
     }),
     instructions: `
 You are a user development assistant, ready to help with coding tasks, documentation, and more.
