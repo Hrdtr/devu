@@ -9,7 +9,7 @@ import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import { ListboxContent, ListboxItem, ListboxRoot, ListboxVirtualizer } from 'reka-ui'
 import { titleCase } from 'scule'
-import { nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { NeonBorder } from '@/components/inspira'
@@ -78,26 +78,20 @@ marked.use({
 
         return html
       }
-      const classValue = lang ? `hljs language-${escape(lang)}` : hljs
-      const classAttr = classValue
-        ? ` class="${classValue}"`
-        : ''
+
+      const id = useId()
+      const hljsClass = lang ? `hljs language-${escape(lang)}` : 'hljs'
       code = code.replace(/\n$/, '')
-      const copyButton = document.createElement('button')
-      copyButton.classList.add(
-        'copy-code',
-        'dark',
-        'absolute',
-        'top-1',
-        'right-1',
-        'p-2',
-        'text-muted-foreground',
-        'hover:text-foreground',
-        'transition-colors',
-      )
-      // lucide:copy icon
-      copyButton.innerHTML = `<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`
-      return `<pre class="relative border rounded-lg">${copyButton.outerHTML}<code ${classAttr} class="rounded-lg">${escaped ? code : escape(code, true)}\n</code></pre>`
+
+      return `<div class="dark bg-background relative flex flex-col border rounded-lg">
+  <div class="not-prose px-3.5 py-3 flex flex-row items-center justify-between gap-4 border-b">
+    <span class="text-muted-foreground text-xs uppercase font-medium line-clamp-1">${lang}</span>
+    <button class="copy-code text-muted-foreground hover:text-foreground transition-colors" data-target="${id}">
+      <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+    </button>
+  </div>
+  <pre id="${id}" class="!m-0 rounded-lg rounded-t-none"><code class="${hljsClass}">${escaped ? code : escape(code, true)}</code></pre>
+</div>`
     },
   } as ReturnType<typeof markedHighlight>['renderer'],
 })
@@ -114,20 +108,18 @@ const { chatId, title, scrollElementRef } = useLLMChatState()
 function codeblockCopyEventHandler(e: Event) {
   const target = e.target as HTMLElement
   // Match `.copy-code` anywhere in document
-  const button = target.closest('button.copy-code')
-  if (!button) {
+  const button = target.closest<HTMLButtonElement>('button.copy-code')
+  if (!button || !button.dataset.target) {
     return
   }
-  // Traverse up to <pre> and get sibling <code>
-  const pre = button.closest('pre')
-  const code = pre?.querySelector('code')
-  if (!code) {
+  const pre = document.querySelector<HTMLPreElement>(`#${button.dataset.target}`)
+  if (!pre) {
     return
   }
 
   e.preventDefault()
   e.stopPropagation()
-  const codeText = code.textContent || ''
+  const codeText = pre.textContent || ''
   navigator.clipboard.writeText(codeText).then(() => {
     toast.success('Copied to clipboard!')
   }).catch(() => {
