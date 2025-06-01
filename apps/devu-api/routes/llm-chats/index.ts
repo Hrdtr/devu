@@ -84,7 +84,7 @@ export const llmChat = srv
         })
 
         let nextCursor: string | null = null
-        if (data.length === limit) {
+        if (limit !== -1 && data.length === limit) {
           const lastDataEntry = data[data.length - 1]!
           nextCursor = Buffer.from(JSON.stringify({
             lastUpdatedAt: lastDataEntry.lastUpdatedAt.toISOString(),
@@ -136,7 +136,7 @@ export const llmChat = srv
 
         const chat = await context.db.query.llmChat.findFirst({
           where: eq(schema.llmChat.id, id),
-          columns: { id: true },
+          columns: { id: true, title: true, activeBranches: true },
         })
         if (!chat) {
           throw new ORPCError('NOT_FOUND', { message: 'Chat not found.' })
@@ -145,7 +145,12 @@ export const llmChat = srv
         const data = await context.db
           .update(schema.llmChat)
           .set({
-            lastUpdatedAt: new Date(),
+            lastUpdatedAt: (
+              (title !== undefined && chat.title !== title)
+              || (activeBranches !== undefined && JSON.stringify(chat.activeBranches) !== JSON.stringify(activeBranches))
+            )
+              ? new Date()
+              : undefined,
             title,
             activeBranches,
           })

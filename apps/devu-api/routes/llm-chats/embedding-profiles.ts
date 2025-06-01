@@ -96,7 +96,7 @@ export const llmChatEmbeddingProfile = srv
         })
 
         let nextCursor: string | null = null
-        if (data.length === limit) {
+        if (limit !== -1 && data.length === limit) {
           const lastDataEntry = data[data.length - 1]!
           nextCursor = Buffer.from(JSON.stringify({
             lastUpdatedAt: lastDataEntry.lastUpdatedAt.toISOString(),
@@ -162,6 +162,7 @@ export const llmChatEmbeddingProfile = srv
         const data = await context.db
           .update(schema.llmChatEmbeddingProfile)
           .set({
+            lastUpdatedAt: new Date(),
             name,
             provider,
             configuration,

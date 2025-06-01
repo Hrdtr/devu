@@ -71,7 +71,7 @@ export const utilityInvocationHistory = srv
         })
 
         let nextCursor: string | null = null
-        if (data.length === limit) {
+        if (limit !== -1 && data.length === limit) {
           const lastDataEntry = data[data.length - 1]!
           nextCursor = Buffer.from(JSON.stringify({
             createdAt: lastDataEntry.createdAt.toISOString(),
