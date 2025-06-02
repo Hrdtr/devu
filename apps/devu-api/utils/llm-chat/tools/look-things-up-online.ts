@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import { createTool } from '@mastra/core'
 import { Readability } from '@mozilla/readability'
 import { parseHTML } from 'linkedom'
