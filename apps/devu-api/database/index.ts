@@ -1,107 +1,64 @@
-import type { Extension, PGliteInterfaceExtensions } from '@electric-sql/pglite'
-import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { PGlite } from '@electric-sql/pglite'
-import { vector } from '@electric-sql/pglite/vector'
-import { drizzle } from 'drizzle-orm/pglite'
-import { config } from '@/config'
+import type { Client, Config } from '@libsql/client'
+import type { MigrationConfig } from 'drizzle-orm/migrator'
+import { mkdirSync } from 'node:fs'
+import { dirname } from 'node:path'
+import { createClient as createLibSQLClient } from '@libsql/client'
+import { drizzle } from 'drizzle-orm/libsql'
+import { migrate } from 'drizzle-orm/libsql/migrator'
 import * as schema from './schema'
 
-/* eslint-disable perfectionist/sort-imports, antfu/no-import-node-modules-by-path, antfu/no-import-dist */
-// PGLite static assets
-// @ts-expect-error pglite.wasm
-import PGLiteWasm from '../../../node_modules/@electric-sql/pglite/dist/pglite.wasm' with { loader: 'wasm' }
-// @ts-expect-error pglite.data
-import PGLiteFSBundle from '../../../node_modules/@electric-sql/pglite/dist/pglite.data' with { loader: 'file' }
+export { and, asc, count, desc, eq, gt, gte, isNotNull, isNull, like, lt, lte, max, min, ne, or, sql } from 'drizzle-orm'
 
-// PGlite extensions
-// @ts-expect-error vector.tar.gz
-import PGLiteVectorExtension from '../../../node_modules/@electric-sql/pglite/dist/vector.tar.gz' with { loader: 'file' }
-import { mkdirSync } from 'node:fs'
-/* eslint-enable perfectionist/sort-imports, antfu/no-import-node-modules-by-path, antfu/no-import-dist */
-
-export {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gt,
-  gte,
-  ilike,
-  isNotNull,
-  isNull,
-  like,
-  lt,
-  lte,
-  max,
-  min,
-  ne,
-  or,
-  sql,
-} from 'drizzle-orm'
-
-export type PGliteClient = PGlite & PGliteInterfaceExtensions<{ vector: typeof vector }>
+export type LibSQLClient = Client
 export type DB = ReturnType<typeof useDatabase>
 
-function resolveAssetPath(path: string) {
-  if (config.appResourcesPath) {
-    return join(config.appResourcesPath, path)
-  }
-  return path
-}
+const clients: Record<string, LibSQLClient> = {}
+const clientsPromise: Record<string, Promise<LibSQLClient>> = {}
 
-let client: PGliteClient | undefined
-let clientPromise: Promise<PGliteClient> | undefined
-
-export async function createClient(dataDir: string) {
-  if (client) {
-    return Promise.resolve(client)
+export async function createClient(config: Config, migrationConfig?: MigrationConfig): Promise<LibSQLClient> {
+  if (clients[config.url]) {
+    return Promise.resolve(clients[config.url]!)
   };
-  if (clientPromise) {
-    return clientPromise
+  if (clientsPromise[config.url]) {
+    return clientsPromise[config.url]!
   };
 
-  clientPromise = (async () => {
+  clientsPromise[config.url] = (async () => {
     try {
-      mkdirSync(dataDir, { recursive: true })
-      const fsBundle = Bun.file(resolveAssetPath(PGLiteFSBundle))
-      const wasm = Bun.file(resolveAssetPath(PGLiteWasm))
+      if (config.url.startsWith('file:')) {
+        mkdirSync(dirname(config.url.replace('file:', '')), { recursive: true })
+      }
 
-      const pgliteClient = await PGlite.create(dataDir, {
-        // debug: 5,
-        fsBundle,
-        wasmModule: await WebAssembly.compile(await wasm.arrayBuffer()),
-        extensions: {
-          // Modified version of @electric-sql/pglite/vector to work with custom bundlePath url
-          // Source: https://github.com/electric-sql/pglite/blob/71707ff970508fa1f8db6ed1d170f31194bf89e6/packages/pglite/src/vector/index.ts
-          vector: {
-            ...vector,
-            setup: async (_pg, emscriptenOpts) => {
-              return {
-                emscriptenOpts,
-                bundlePath: pathToFileURL(resolveAssetPath(PGLiteVectorExtension)),
-              }
-            },
-          } satisfies Extension,
-        },
-      })
+      const libSQLClient = createLibSQLClient(config)
+      if (migrationConfig) {
+        console.info('Running database migrations...')
+        const startTime = Date.now()
+        try {
+          const db = drizzle(libSQLClient, { schema })
+          await migrate(db, migrationConfig)
+          console.info(`Database migrations completed in ${Date.now() - startTime}ms.`)
+        }
+        catch (err) {
+          console.error(`Database migrations failed.\n`, err)
+          throw err
+        }
+      }
 
-      await pgliteClient.waitReady // Needed, otherwise the drizzle migrate command will fail
-      client = pgliteClient
+      clients[config.url] = libSQLClient
 
-      return client
+      return clients[config.url]!
     }
     catch (err) {
-      clientPromise = undefined // allow retry on next call
+      delete clients[config.url] // allow retry on next call
+      delete clientsPromise[config.url]
       throw err
     }
   })()
 
-  return clientPromise
+  return clientsPromise[config.url]!
 }
 
-export function useDatabase(client: PGliteClient) {
+export function useDatabase(client: LibSQLClient) {
   const db = drizzle(client, { schema })
   return db
 }

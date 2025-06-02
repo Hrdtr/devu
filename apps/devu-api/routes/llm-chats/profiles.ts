@@ -1,20 +1,11 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
-import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
+import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const llmChatProfileSchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  lastUpdatedAt: z.date().nullable(),
-  name: z.string(),
-  provider: z.string(),
-  configuration: z.object({ baseUrl: z.string().optional() }),
-  credentials: z.object({ apiKey: z.string().optional() }),
-  model: z.string(),
-  additionalSystemPrompt: z.string().nullable(),
-})
+const llmChatProfileSchema = createSelectSchema(schema.llmChatProfile)
 
 export const llmChatProfile = srv
   .prefix('/profiles')
@@ -99,7 +90,7 @@ export const llmChatProfile = srv
                 )
               : undefined,
             search
-              ? ilike(schema.llmChatProfile.name, `%${search}%`)
+              ? sql`${schema.llmChatProfile.name} LIKE ${`%${search}%`} COLLATE NOCASE`
               : undefined,
           ),
           orderBy: [desc(schema.llmChatProfile.lastUpdatedAt), desc(schema.llmChatProfile.id)],
@@ -110,20 +101,20 @@ export const llmChatProfile = srv
             .insert(schema.llmChatProfile)
             .values({
               id: createId(),
-              name: 'Ollama - llama3.2:3b',
+              name: 'Ollama - qwen3:4b',
               provider: 'ollama',
               configuration: {
-                baseUrl: 'http://localhost:11434',
+                baseUrl: 'http://localhost:11434/api',
               },
               credentials: {},
-              model: 'llama3.2:3b',
+              model: 'qwen3:4b',
               additionalSystemPrompt: null,
             })
             .returning()
         }
 
         let nextCursor: string | null = null
-        if (data.length === limit) {
+        if (limit !== -1 && data.length === limit) {
           const lastDataEntry = data[data.length - 1]!
           nextCursor = Buffer.from(JSON.stringify({
             lastUpdatedAt: lastDataEntry.lastUpdatedAt.toISOString(),
@@ -161,7 +152,7 @@ export const llmChatProfile = srv
     update: defineRoute({
       summary: 'Update',
       method: 'PATCH',
-      path: '/{+id}',
+      path: '/{id}',
       tags: ['LLM Chat: Profile'],
     }, os => os
       .input(z.object({
@@ -190,6 +181,7 @@ export const llmChatProfile = srv
         const data = await context.db
           .update(schema.llmChatProfile)
           .set({
+            lastUpdatedAt: new Date(),
             name,
             provider,
             configuration,

@@ -1,19 +1,14 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
-import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
+import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
+import { llmChatEmbeddingProfile } from './embedding-profiles'
 import { llmChatMessage } from './messages'
 import { llmChatProfile } from './profiles'
 
-const llmChatSchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  lastUpdatedAt: z.date().nullable(),
-  title: z.string().nullable(),
-  rootMessageId: z.uuidv7(),
-  activeBranches: z.uuidv7().array(),
-})
+const llmChatSchema = createSelectSchema(schema.llmChat)
 
 export const llmChat = srv
   .prefix('/llm-chats')
@@ -81,7 +76,7 @@ export const llmChat = srv
                 )
               : undefined,
             search
-              ? ilike(schema.llmChat.title, `%${search}%`)
+              ? sql`${schema.llmChat.title} LIKE ${`%${search}%`} COLLATE NOCASE`
               : undefined,
           ),
           orderBy: [desc(schema.llmChat.lastUpdatedAt), desc(schema.llmChat.id)],
@@ -89,7 +84,7 @@ export const llmChat = srv
         })
 
         let nextCursor: string | null = null
-        if (data.length === limit) {
+        if (limit !== -1 && data.length === limit) {
           const lastDataEntry = data[data.length - 1]!
           nextCursor = Buffer.from(JSON.stringify({
             lastUpdatedAt: lastDataEntry.lastUpdatedAt.toISOString(),
@@ -141,7 +136,7 @@ export const llmChat = srv
 
         const chat = await context.db.query.llmChat.findFirst({
           where: eq(schema.llmChat.id, id),
-          columns: { id: true },
+          columns: { id: true, title: true, activeBranches: true },
         })
         if (!chat) {
           throw new ORPCError('NOT_FOUND', { message: 'Chat not found.' })
@@ -150,7 +145,12 @@ export const llmChat = srv
         const data = await context.db
           .update(schema.llmChat)
           .set({
-            lastUpdatedAt: new Date(),
+            lastUpdatedAt: (
+              (title !== undefined && chat.title !== title)
+              || (activeBranches !== undefined && JSON.stringify(chat.activeBranches) !== JSON.stringify(activeBranches))
+            )
+              ? new Date()
+              : undefined,
             title,
             activeBranches,
           })
@@ -190,4 +190,5 @@ export const llmChat = srv
 
     profile: llmChatProfile,
     message: llmChatMessage,
+    embeddingProfile: llmChatEmbeddingProfile,
   })

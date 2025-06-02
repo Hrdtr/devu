@@ -5,29 +5,37 @@ import { z } from 'zod/v4'
 import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const codeSnippetSchema = createSelectSchema(schema.codeSnippet)
+const llmChatEmbeddingProfileSchema = createSelectSchema(schema.llmChatEmbeddingProfile)
 
-export const codeSnippet = srv
-  .prefix('/code-snippets')
+export const llmChatEmbeddingProfile = srv
+  .prefix('/embedding-profiles')
   .router({
     create: defineRoute({
       summary: 'Create',
       method: 'POST',
       path: '/',
-      tags: ['Code Snippet'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({
         name: z.string().min(1),
-        language: z.string().min(1),
-        code: z.string().min(1),
-        notes: z.string().min(1).nullish(),
+        provider: z.string().min(1),
+        configuration: z.object({ baseUrl: z.string().min(1).optional() }),
+        credentials: z.object({ apiKey: z.string().min(1).optional() }),
+        model: z.string().min(1),
       }))
-      .output(codeSnippetSchema)
+      .output(llmChatEmbeddingProfileSchema)
       .handler(async ({ context, input }) => {
-        const { name, language, code, notes } = input
+        const { name, provider, configuration, credentials, model } = input
         const data = await context.db
-          .insert(schema.codeSnippet)
-          .values({ id: createId(), name, language, code, notes })
+          .insert(schema.llmChatEmbeddingProfile)
+          .values({
+            id: createId(),
+            name,
+            provider,
+            configuration,
+            credentials,
+            model,
+          })
           .returning()
           .then(res => res[0]!)
 
@@ -38,16 +46,15 @@ export const codeSnippet = srv
       summary: 'List',
       method: 'GET',
       path: '/',
-      tags: ['Code Snippet'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({
-        language: z.string().nullish(),
         search: z.string().nullish(),
         limit: z.coerce.number().min(1).max(99).or(z.coerce.number().min(-1).max(-1)).default(10),
         cursor: z.string().min(1).nullish(),
       }))
       .output(z.object({
-        data: codeSnippetSchema.array(),
+        data: llmChatEmbeddingProfileSchema.array(),
         nextCursor: z.string().nullable(),
       }))
       .use(async ({ next }, input) => {
@@ -67,30 +74,24 @@ export const codeSnippet = srv
         return next({ context: { parsedCursor } })
       })
       .handler(async ({ context, input }) => {
-        const { language, search, limit } = input
+        const { search, limit } = input
 
-        const data = await context.db.query.codeSnippet.findMany({
+        const data = await context.db.query.llmChatEmbeddingProfile.findMany({
           where: and(
-            language
-              ? eq(schema.codeSnippet.language, language)
-              : undefined,
-            search
-              ? or(
-                  sql`${schema.codeSnippet.name} LIKE ${`%${search}%`} COLLATE NOCASE`,
-                  sql`${schema.codeSnippet.code} LIKE ${`%${search}%`} COLLATE NOCASE`,
-                )
-              : undefined,
             context.parsedCursor
               ? or(
-                  lt(schema.codeSnippet.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
+                  lt(schema.llmChatEmbeddingProfile.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
                   and(
-                    eq(schema.codeSnippet.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
-                    lt(schema.codeSnippet.id, context.parsedCursor.id),
+                    eq(schema.llmChatEmbeddingProfile.lastUpdatedAt, new Date(context.parsedCursor.lastUpdatedAt)),
+                    lt(schema.llmChatEmbeddingProfile.id, context.parsedCursor.id),
                   ),
                 )
               : undefined,
+            search
+              ? sql`${schema.llmChatEmbeddingProfile.name} LIKE ${`%${search}%`} COLLATE NOCASE`
+              : undefined,
           ),
-          orderBy: [desc(schema.codeSnippet.lastUpdatedAt), desc(schema.codeSnippet.id)],
+          orderBy: [desc(schema.llmChatEmbeddingProfile.lastUpdatedAt), desc(schema.llmChatEmbeddingProfile.id)],
           limit: limit === -1 ? undefined : limit,
         })
 
@@ -113,18 +114,18 @@ export const codeSnippet = srv
       summary: 'Retrieve',
       method: 'GET',
       path: '/{id}',
-      tags: ['Code Snippet'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({ id: z.uuidv7() }))
-      .output(codeSnippetSchema)
+      .output(llmChatEmbeddingProfileSchema)
       .handler(async ({ context, input }) => {
         const { id } = input
 
-        const data = await context.db.query.codeSnippet.findFirst({
-          where: eq(schema.codeSnippet.id, id),
+        const data = await context.db.query.llmChatEmbeddingProfile.findFirst({
+          where: eq(schema.llmChatEmbeddingProfile.id, id),
         })
         if (!data) {
-          throw new ORPCError('NOT_FOUND', { message: 'Snippet not found.' })
+          throw new ORPCError('NOT_FOUND', { message: 'Embedding Profile not found.' })
         }
 
         return data
@@ -134,33 +135,41 @@ export const codeSnippet = srv
       summary: 'Update',
       method: 'PATCH',
       path: '/{id}',
-      tags: ['Code Snippet'],
+      tags: ['LLM Chat: Embedding Profile'],
     }, os => os
       .input(z.object({
         id: z.uuidv7(),
         ...z.object({
           name: z.string().min(1),
-          language: z.string().min(1),
-          code: z.string().min(1),
-          notes: z.string().min(1).nullish(),
+          provider: z.string().min(1),
+          configuration: z.object({ baseUrl: z.string().min(1).optional() }),
+          credentials: z.object({ apiKey: z.string().min(1).optional() }),
+          model: z.string().min(1),
         }).partial().shape,
       }))
-      .output(codeSnippetSchema)
+      .output(llmChatEmbeddingProfileSchema)
       .handler(async ({ context, input }) => {
-        const { id, name, language, code, notes } = input
+        const { id, name, provider, configuration, credentials, model } = input
 
-        const chat = await context.db.query.codeSnippet.findFirst({
-          where: eq(schema.codeSnippet.id, id),
+        const profile = await context.db.query.llmChatEmbeddingProfile.findFirst({
+          where: eq(schema.llmChatEmbeddingProfile.id, id),
           columns: { id: true },
         })
-        if (!chat) {
-          throw new ORPCError('NOT_FOUND', { message: 'Snippet not found.' })
+        if (!profile) {
+          throw new ORPCError('NOT_FOUND', { message: 'Embedding Profile not found.' })
         }
 
         const data = await context.db
-          .update(schema.codeSnippet)
-          .set({ lastUpdatedAt: new Date(), name, language, code, notes })
-          .where(eq(schema.codeSnippet.id, chat.id))
+          .update(schema.llmChatEmbeddingProfile)
+          .set({
+            lastUpdatedAt: new Date(),
+            name,
+            provider,
+            configuration,
+            credentials,
+            model,
+          })
+          .where(eq(schema.llmChatEmbeddingProfile.id, profile.id))
           .returning()
           .then(res => res[0]!)
 
@@ -171,7 +180,7 @@ export const codeSnippet = srv
       summary: 'Delete',
       method: 'DELETE',
       path: '/{id}',
-      tags: ['Code Snippet'],
+      tags: ['LLM Chat: Embedding Profile'],
       successStatus: 204,
     }, os => os
       .input(z.object({ id: z.uuidv7() }))
@@ -179,17 +188,17 @@ export const codeSnippet = srv
       .handler(async ({ context, input }) => {
         const { id } = input
 
-        const chat = await context.db.query.codeSnippet.findFirst({
-          where: eq(schema.codeSnippet.id, id),
+        const profile = await context.db.query.llmChatEmbeddingProfile.findFirst({
+          where: eq(schema.llmChatEmbeddingProfile.id, id),
           columns: { id: true },
         })
-        if (!chat) {
-          throw new ORPCError('NOT_FOUND', { message: 'Snippet not found.' })
+        if (!profile) {
+          throw new ORPCError('NOT_FOUND', { message: 'Embedding Profile not found.' })
         }
 
         await context.db
-          .delete(schema.codeSnippet)
-          .where(eq(schema.codeSnippet.id, chat.id))
+          .delete(schema.llmChatEmbeddingProfile)
+          .where(eq(schema.llmChatEmbeddingProfile.id, profile.id))
 
         return null
       })),

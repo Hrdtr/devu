@@ -10,7 +10,6 @@ import {
   experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin,
   experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter,
 } from '@orpc/zod/zod4'
-import { migrate } from 'drizzle-orm/pglite/migrator'
 import { config } from './config'
 import { createClient, useDatabase } from './database'
 import pkg from './package.json'
@@ -18,13 +17,12 @@ import * as routes from './routes'
 
 // process.env.BUN_CONFIG_VERBOSE_FETCH = 'curl'
 
-const client = await createClient(join(config.appDataDir, 'data'))
-const db = useDatabase(client)
-
-console.info('Running database migrations...')
-migrate(db, {
+const client = await createClient({
+  url: `file:${config.dbFilePath.app}`,
+}, {
   migrationsFolder: resolve(join(dirname(fileURLToPath(import.meta.url)), 'database', 'migrations')),
 })
+const db = useDatabase(client)
 
 const fetchHandler = new RPCHandler(routes, {
   plugins: [

@@ -1,6 +1,6 @@
 # Devu
 
-<img align="right" src="apps/devu/public/icon-rounded.png" width="86" height="86" />
+<img align="right" src="apps/devu/public/icon.png" width="120" height="120" style="margin-left: 16px; border-radius: 24px;" />
 
 **Your AI-Powered Development Utility**
 
@@ -11,8 +11,8 @@ Devu is a versatile development utility that provides a suite of tools to enhanc
 
 ## Features
 
-- **LLM Chat:** Interact with large language models. Supports providers like Anthropic, Google GenAI, Ollama, and OpenAI.
-- **Code Playground:** Experiment with code snippets and execute them in a safe environment using Livecodes.
+- **LLM Chat:** Interact with large language models. Supports providers like Anthropic, Cohere, DeepSeek, Google GenAI, Mistral, OpenAI, xAI and Ollama.
+- **Code Playground:** Experiment with code snippets and execute them in a safe environment.
 - **Code Snippets:** Create, store, and manage reusable code snippets.
 - **Utilities:** Access a collection of useful development utilities such as code formatting, minification, and conversion.
 
