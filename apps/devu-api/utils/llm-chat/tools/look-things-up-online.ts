@@ -105,7 +105,7 @@ ${result.results.map(result => `- ${result.title}
 })
 
 async function search(query: string) {
-  const response = await fetch(`https://lite.duckduckgo.com/lite/?q=${query}`)
+  const response = await fetch(`https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`)
   if (!response.ok) {
     return 'Error: failed to fetch search result'
   }
