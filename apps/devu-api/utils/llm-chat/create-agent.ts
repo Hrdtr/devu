@@ -9,7 +9,7 @@ import { config } from '@/config'
 import { useLLMEmbeddingModel } from '@/utils/use-llm-embedding-model'
 import { useLLMLanguageModel } from '@/utils/use-llm-language-model'
 import { useLLMProvider } from '@/utils/use-llm-provider'
-import { invokeUtility } from './tools'
+import { invokeUtility, lookThingsUpOnline } from './tools'
 
 // Building type declaration throws error if not imported
 // eslint-disable-next-line perfectionist/sort-imports, unused-imports/no-unused-imports
@@ -17,19 +17,23 @@ import * as _ from '@mastra/core/tools'
 
 export function createAgent<
   InvokeUtility extends boolean = false,
+  LookThingsUpOnline extends boolean = false,
 >(
   profile: InferSelectModel<typeof schema.llmChatProfile>,
   options: {
     embeddingProfile?: InferSelectModel<typeof schema.llmChatEmbeddingProfile>
     tools?: {
       invokeUtility?: InvokeUtility
+      lookThingsUpOnline?: LookThingsUpOnline
     }
   } = {},
 ) {
   const tools = {
     ...(options.tools?.invokeUtility ? { invokeUtility } : {}),
+    ...(options.tools?.lookThingsUpOnline ? { lookThingsUpOnline } : {}),
   } as {
     invokeUtility: InvokeUtility extends true ? typeof invokeUtility : never
+    lookThingsUpOnline: LookThingsUpOnline extends true ? typeof lookThingsUpOnline : never
   }
 
   const provider = useLLMProvider(profile.provider as LLMProviderId, {

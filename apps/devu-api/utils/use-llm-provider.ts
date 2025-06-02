@@ -81,7 +81,11 @@ export function useLLMProvider(id: LLMProviderId, options: UseLLMProviderOptions
 
     case 'ollama':
       return createOllama({
-        baseURL: options.configuration?.baseUrl,
+        baseURL: options.configuration?.baseUrl
+          ? options.configuration.baseUrl.trim().endsWith('/api') || options.configuration.baseUrl.trim().endsWith('/api/')
+            ? options.configuration.baseUrl.trim().replace(/\/$/, '')
+            : `${options.configuration.baseUrl}/api`
+          : undefined,
         headers: options.configuration?.headers,
       })
 

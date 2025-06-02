@@ -31,6 +31,7 @@ export const llmChatMessage = srv
         profileId: z.uuidv7(),
         tools: z.object({
           invokeUtility: z.boolean().optional(),
+          lookThingsUpOnline: z.boolean().optional(),
         }).optional(),
       }))
       .output(eventIterator(z.union([
@@ -137,6 +138,13 @@ export const llmChatMessage = srv
               yield {
                 action: 'tool_invoke',
                 data: chunk.toolName,
+              }
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: assistantMessage.content.trim().length > 0 ? `\n\n...\n\n` : '',
+                },
               }
             }
             if (chunk.type === 'error') {
@@ -268,6 +276,7 @@ export const llmChatMessage = srv
         profileId: z.uuidv7(),
         tools: z.object({
           invokeUtility: z.boolean().optional(),
+          lookThingsUpOnline: z.boolean().optional(),
         }).optional(),
       }))
       .output(eventIterator(z.union([
@@ -372,6 +381,13 @@ export const llmChatMessage = srv
                 action: 'tool_invoke',
                 data: chunk.toolName,
               }
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: assistantMessage.content.trim().length > 0 ? `\n\n...\n\n` : '',
+                },
+              }
             }
             if (chunk.type === 'error') {
               const error = chunk.error
@@ -424,6 +440,7 @@ export const llmChatMessage = srv
         profileId: z.uuidv7(),
         tools: z.object({
           invokeUtility: z.boolean().optional(),
+          lookThingsUpOnline: z.boolean().optional(),
         }).optional(),
       }))
       .output(eventIterator(z.union([
@@ -536,6 +553,13 @@ export const llmChatMessage = srv
               yield {
                 action: 'tool_invoke',
                 data: chunk.toolName,
+              }
+              yield {
+                action: 'append_message_content_chunk',
+                data: {
+                  messageId: assistantMessage.id,
+                  chunk: assistantMessage.content.trim().length > 0 ? `\n\n...\n\n` : '',
+                },
               }
             }
             if (chunk.type === 'error') {

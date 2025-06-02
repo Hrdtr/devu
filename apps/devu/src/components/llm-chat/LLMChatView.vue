@@ -105,31 +105,41 @@ onDeactivated(() => (activated.value = false))
 
 const { chatId, title, scrollElementRef } = useLLMChatState()
 
-function codeblockCopyEventHandler(e: Event) {
+function messageContentClickHandler(e: Event) {
   const target = e.target as HTMLElement
-  // Match `.copy-code` anywhere in document
-  const button = target.closest<HTMLButtonElement>('button.copy-code')
-  if (!button || !button.dataset.target) {
-    return
-  }
-  const pre = document.querySelector<HTMLPreElement>(`#${button.dataset.target}`)
-  if (!pre) {
+  if (!target) {
     return
   }
 
-  e.preventDefault()
-  e.stopPropagation()
-  const codeText = pre.textContent || ''
-  navigator.clipboard.writeText(codeText).then(() => {
-    toast.success('Copied to clipboard!')
-  }).catch(() => {
-    toast.error('Failed to copy.')
-  })
+  // Links
+  if (target.tagName === 'A') {
+    const anchorElement = target as HTMLAnchorElement
+    e.preventDefault()
+    e.stopPropagation()
+    openUrl(anchorElement.href)
+  }
+
+  // Code block actions
+  // Match `.copy-code` anywhere in document
+  const button = target.closest<HTMLButtonElement>('button.copy-code')
+  if (button && button.dataset.target) {
+    const pre = document.querySelector<HTMLPreElement>(`#${button.dataset.target}`)
+    if (!pre) {
+      return
+    }
+
+    e.preventDefault()
+    e.stopPropagation()
+    const codeText = pre.textContent || ''
+    navigator.clipboard.writeText(codeText)
+      .then(() => toast.success('Code copied to clipboard!'))
+      .catch(() => toast.error('Failed to copy code.'))
+  }
 }
-onMounted(() => document.addEventListener('click', codeblockCopyEventHandler))
-onBeforeUnmount(() => document.removeEventListener('click', codeblockCopyEventHandler))
-onActivated(() => document.addEventListener('click', codeblockCopyEventHandler))
-onDeactivated(() => document.removeEventListener('click', codeblockCopyEventHandler))
+onMounted(() => document.addEventListener('click', messageContentClickHandler))
+onBeforeUnmount(() => document.removeEventListener('click', messageContentClickHandler))
+onActivated(() => document.addEventListener('click', messageContentClickHandler))
+onDeactivated(() => document.removeEventListener('click', messageContentClickHandler))
 
 const { copy } = useClipboardItems()
 const copiedMessageId = ref<string>()
@@ -186,6 +196,7 @@ const {
 
 const tools = ref<NonNullable<ApiRouteInput['llmChat']['message']['create']['tools']>>({
   invokeUtility: false,
+  lookThingsUpOnline: false,
 })
 
 const chat = ref<ApiRouteOutput['llmChat']['retrieve']>()
@@ -278,7 +289,13 @@ async function initializeProfile() {
   const assistantMessages = messages.value.data.filter(i => i.role === 'assistant')
   const { provider, model } = assistantMessages[assistantMessages.length - 1]?.metadata || {}
   if (provider && model) {
-    profileSelected.value = profiles.value.find(p => p.provider === provider && p.model === model)
+    const lastUsedProfile = profiles.value.find(p => p.provider === provider && p.model === model)
+    if (lastUsedProfile) {
+      profileSelected.value = profiles.value.find(p => p.provider === provider && p.model === model)
+    }
+    else {
+      profileSelected.value = profiles.value[0]
+    }
   }
   else {
     profileSelected.value = profiles.value[0]
@@ -515,10 +532,10 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
               <div class="w-full max-w-screen-md mx-auto p-4 mb-4 space-y-2">
                 <div
                   v-if="message.role === 'human'"
-                  class="px-3 py-2 mb-1 w-fit max-w-[80%] bg-secondary text-secondary-foreground rounded-lg ml-auto transition origin-bottom-right"
+                  class="mb-1 w-fit max-w-[80%] bg-secondary text-secondary-foreground rounded-lg ml-auto transition origin-bottom-right"
                   :class="editMessageId === message.id ? 'opacity-0 scale-80' : 'opacity-100 scale-100'"
                 >
-                  <div class="select-auto">
+                  <div class="px-3 py-2 select-auto overflow-x-auto">
                     <p class="whitespace-pre-line">
                       {{ message.content }}
                     </p>
@@ -716,7 +733,7 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
         <NeonBorder
           class="w-full max-w-none h-auto -mb-2"
           animation-type="none"
-          color1="var(--color-foreground)"
+          color1="var(--color-secondary)"
           color2="var(--color-primary)"
         >
           <div class="w-full bg-sidebar text-sidebar-foreground rounded-lg shadow-[0_0px_3px_0_var(--tw-shadow-color,_rgb(0_0_0_/_0.1))] shadow-foreground/20">
@@ -731,17 +748,22 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
               <div class="flex flex-wrap gap-1">
                 <Popover>
                   <PopoverTrigger as-child>
-                    <Button variant="outline" size="sm" :class="Object.values(tools).some(Boolean) ? 'text-primary' : ''">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      :class="Object.values(tools).some(Boolean) ? 'text-primary' : ''"
+                      :disabled="messageState !== 'idle'"
+                    >
                       <Wrench /> Tools
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent side="top" align="start" class="p-3">
+                  <PopoverContent side="top" align="start" class="p-1">
                     <label
                       v-for="[key, value] in Object.entries(tools)"
                       :key="key"
                       :for="key"
-                      class="flex items-center justify-between gap-2 transition-colors"
-                      :class="Object.values(tools).some(Boolean) ? 'text-primary' : ''"
+                      class="flex items-center justify-between gap-2 transition-colors px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm"
+                      :class="value ? 'text-primary' : ''"
                     >
                       <span
                         class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -753,8 +775,8 @@ const { isMobile, openMobile, setOpenMobile } = useSidebar()
                   </PopoverContent>
                 </Popover>
 
-                <Select v-model="profileSelected" required>
-                  <SelectTrigger class="max-w-48" size="sm">
+                <Select v-model="profileSelected" required :disabled="messageState !== 'idle'">
+                  <SelectTrigger class="max-w-48 disabled:cursor-default" size="sm">
                     <SelectValue placeholder="Select a profile" class="w-full !inline-block !truncate" />
                   </SelectTrigger>
                   <SelectContent>
