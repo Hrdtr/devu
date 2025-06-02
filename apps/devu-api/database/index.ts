@@ -26,7 +26,7 @@ export async function createClient(config: Config, migrationConfig?: MigrationCo
   clientsPromise[config.url] = (async () => {
     try {
       if (config.url.startsWith('file:')) {
-        mkdirSync(dirname(config.url), { recursive: true })
+        mkdirSync(dirname(config.url.replace('file:', '')), { recursive: true })
       }
 
       const libSQLClient = createLibSQLClient(config)
