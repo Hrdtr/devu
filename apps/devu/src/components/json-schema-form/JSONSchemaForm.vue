@@ -160,8 +160,8 @@ watch(fields, (value) => {
   error.value = {}
   const newValues: Record<string, any> = {}
   for (const field of value) {
-    newValues[field.name] = fieldsValue.value[field.name]
-      ? fieldsValue.value[field.name] !== undefined // Keep existing value
+    newValues[field.name] = fieldsValue.value[field.name] !== undefined
+      ? fieldsValue.value[field.name] // Keep existing value
       : field.defaultValue !== undefined // Use default value
         ? field.component === 'CodeMirror'
           ? codeMirrorValueSerializer.serialize(field, field.defaultValue)
