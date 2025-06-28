@@ -1,7 +1,7 @@
+/* eslint-disable no-restricted-globals */
 import type { PyodideInterface } from 'pyodide'
 import type { ExecConfigBase, ExecEvent } from '../_shared/types'
 import type { Input, Options } from './definition'
-import process from 'node:process'
 import { loadPyodide } from 'pyodide'
 
 interface WorkerMessage {
@@ -145,8 +145,8 @@ globalThis.onmessage = async (event: MessageEvent<WorkerMessage | AbortMessage>)
 
       currentExecutionId = null
       // Exit the worker after completion
-      console.info(`[code-playground:python-worker] Exiting worker for execution ID: ${config.id}`)
-      process.exit(0)
+      console.info(`[code-playground:python-worker] Terminating worker for execution ID: ${config.id}`)
+      self.close()
     }
   }
 }
