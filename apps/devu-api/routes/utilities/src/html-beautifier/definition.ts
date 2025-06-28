@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'html-beautifier',
-  name: 'HTML Beautifier',
-  description: 'Formats an HTML string.',
-  icon: undefined,
+  meta: {
+    id: 'html-beautifier',
+    name: 'HTML Beautifier',
+    description: 'Formats an HTML string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['html', 'beautification'],
+    related: ['html-minifier'],
+  },
   schema: {
     input: z.string().meta({
       description: 'The HTML string to beautify.',
@@ -111,9 +116,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  requiresInternet: false,
-  tags: ['html', 'beautification'],
-  related: ['html-minifier'],
 })
 
 export type Input = z.input<typeof schema.input>

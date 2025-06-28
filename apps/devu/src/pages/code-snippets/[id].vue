@@ -63,10 +63,10 @@ const submit = handleSubmit(async (formValues) => {
     toast.success('Code snippet updated!')
   }
   else {
-    const snippet = await createCodeSnippet(formValues)
+    const codeSnippet = await createCodeSnippet(formValues)
     toast.success('Code snippet saved!')
     resetForm()
-    router.replace(`/snippets/${snippet?.id}`)
+    router.replace(`/code-snippets/${codeSnippet?.id}`)
   }
 }, async (error) => {
   if (Object.keys(error.errors).length > 0) {
@@ -126,19 +126,19 @@ function createClipboardItem(type: string, data: any) {
               :disabled="codeSnippetState !== 'idle'"
             >
               <Trash />
-              <span class="sr-only">Delete snippet</span>
+              <span class="sr-only">Delete Code snippet</span>
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete this snippet. <b>Cannot be undone.</b>
+                This will permanently delete this code snippet. <b>Cannot be undone.</b>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction @click="deleteCodeSnippet(String(route.params.id)).then(() => router.replace('/snippets/new'))">
+              <AlertDialogAction @click="deleteCodeSnippet(String(route.params.id)).then(() => router.replace('/code-snippets/new'))">
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>

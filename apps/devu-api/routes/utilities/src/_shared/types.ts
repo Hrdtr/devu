@@ -10,12 +10,13 @@ export const MetaSchema = z.object({
   related: z.string().array(),
 })
 
-export interface Meta {
-  id: string
-  name: string
-  description: string
-  requiresInternet: boolean
-  tags: string[]
-  related: string[]
-  icon?: string | undefined
+export type Meta = z.infer<typeof MetaSchema>
+
+export interface Definition<Input extends z.ZodType, Options extends z.ZodType, Output extends z.ZodType> {
+  meta: Meta
+  schema: {
+    input: Input
+    options: Options
+    output: Output
+  }
 }

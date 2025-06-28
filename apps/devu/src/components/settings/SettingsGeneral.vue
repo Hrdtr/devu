@@ -54,8 +54,8 @@ const { codePlaygrounds } = useCodePlayground()
 const defaultViewOptions = computed(() => [
   { label: 'Chat', value: '/' },
   { label: 'Utilities', value: `/utilities/${utilities.value[0]?.id}` },
-  { label: 'Code Snippets', value: '/snippets/new' },
-  { label: 'Code Playground', value: `/playground/${codePlaygrounds.value[0]?.id}` },
+  { label: 'Code Snippets', value: '/code-snippets/new' },
+  { label: 'Code Playground', value: `/code-playgrounds/${codePlaygrounds.value[0]?.id}` },
 ])
 </script>
 

@@ -10,7 +10,6 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "postinstall": "bun run db:generate && bun build:types",
-    "prepare:livecodes": "bun run scripts/download-livecodes-static.ts",
     "db:generate": "drizzle-kit generate"
   },
   "devDependencies": {
@@ -52,6 +51,7 @@
     "jsonwebtoken": "^9.0.2",
     "linkedom": "^0.18.10",
     "ollama-ai-provider": "^1.2.0",
+    "pyodide": "^0.27.7",
     "scule": "^1.3.0",
     "terser": "^5.40.0",
     "turndown": "^7.2.0",

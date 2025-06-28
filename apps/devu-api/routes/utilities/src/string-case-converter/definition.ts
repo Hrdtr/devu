@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'string-case-converter',
-  name: 'String Case Converter',
-  description: 'Converts string casing using scule.',
-  icon: undefined,
+  meta: {
+    id: 'string-case-converter',
+    name: 'String Case Converter',
+    description: 'Converts string casing using scule.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['string', 'case', 'formatting'],
+    related: [],
+  },
   schema: {
     input: z.string().meta({
       description: 'The string to convert.',
@@ -49,9 +54,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  requiresInternet: false,
-  tags: ['string', 'case', 'formatting'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

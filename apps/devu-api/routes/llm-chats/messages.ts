@@ -190,17 +190,14 @@ export const llmChatMessage = srv
           })
         }
         finally {
-          if (!llmStreamFinished) {
-            if (assistantMessage) {
+          if (assistantMessage) {
+            if (activeGenerations.has(assistantMessage.id)) {
+              activeGenerations.delete(assistantMessage.id)
+            }
+            if (!llmStreamFinished) {
               const chunk = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-muted-foreground">Stream stopped.</p>\n`
-              if (activeGenerations.has(assistantMessage.id)) {
-                activeGenerations.delete(assistantMessage.id)
-              }
               assistantMessage.content += chunk
             }
-          }
-
-          if (assistantMessage) {
             await Promise.all([
               context.db.insert(schema.llmChatMessage).values(assistantMessage),
               ...(newChatTitle
@@ -422,6 +419,13 @@ export const llmChatMessage = srv
           }
 
           if (assistantMessage) {
+            if (activeGenerations.has(assistantMessage.id)) {
+              activeGenerations.delete(assistantMessage.id)
+            }
+            if (!llmStreamFinished) {
+              const chunk = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-muted-foreground">Stream stopped.</p>\n`
+              assistantMessage.content += chunk
+            }
             await context.db.insert(schema.llmChatMessage).values(assistantMessage)
             yield { action: 'switch_to_branch', data: assistantMessage.branch }
           }
@@ -584,17 +588,14 @@ export const llmChatMessage = srv
           })
         }
         finally {
-          if (!llmStreamFinished) {
-            if (assistantMessage) {
+          if (assistantMessage) {
+            if (activeGenerations.has(assistantMessage.id)) {
+              activeGenerations.delete(assistantMessage.id)
+            }
+            if (!llmStreamFinished) {
               const chunk = `${assistantMessage.content.length > 0 ? `\n---\n\n` : ''}<p class="text-muted-foreground">Stream stopped.</p>\n`
-              if (activeGenerations.has(assistantMessage.id)) {
-                activeGenerations.delete(assistantMessage.id)
-              }
               assistantMessage.content += chunk
             }
-          }
-
-          if (assistantMessage) {
             await context.db.insert(schema.llmChatMessage).values(assistantMessage)
             yield { action: 'switch_to_branch', data: assistantMessage.branch }
           }

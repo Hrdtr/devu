@@ -1,6 +1,5 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { codePlaygrounds } from '@/composables/use-code-playground'
 import { useSettingsGeneral } from '@/composables/use-settings-general'
 import App from './App.vue'
 
@@ -20,14 +19,13 @@ const router = createRouter({
       component: () => import('./pages/utilities/[id].vue'),
     },
     {
-      path: '/snippets/:id',
-      component: () => import('./pages/snippets/[id].vue'),
+      path: '/code-snippets/:id',
+      component: () => import('./pages/code-snippets/[id].vue'),
     },
-    // Playground
-    ...codePlaygrounds.map(playground => ({
-      path: `/playground/${playground.id}`,
-      component: () => import(`./pages/playground/${playground.id}.vue`),
-    })),
+    {
+      path: '/code-playgrounds/:id',
+      component: () => import('./pages/code-playgrounds/[id].vue'),
+    },
   ],
 })
 

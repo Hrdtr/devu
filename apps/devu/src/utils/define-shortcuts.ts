@@ -95,11 +95,11 @@ export function defineShortcuts(config: MaybeRef<ShortcutsConfig>, options: Shor
       let shortcut: Partial<Shortcut>
 
       if (key.includes('-') && key !== '-' && !key.match(chainedShortcutRegex)?.length) {
-        console.trace(`[Shortcut] Invalid key: "${key}"`)
+        console.trace(`[shortcut] Invalid key: "${key}"`)
       }
 
       if (key.includes('_') && key !== '_' && !key.match(combinedShortcutRegex)?.length) {
-        console.trace(`[Shortcut] Invalid key: "${key}"`)
+        console.trace(`[shortcut] Invalid key: "${key}"`)
       }
 
       const chained = key.includes('-') && key !== '-'
@@ -139,7 +139,7 @@ export function defineShortcuts(config: MaybeRef<ShortcutsConfig>, options: Shor
       }
 
       if (!shortcut.handler) {
-        console.trace('[Shortcut] Invalid value')
+        console.trace('[shortcut] Invalid value')
         return null
       }
 

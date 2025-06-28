@@ -53,34 +53,34 @@ const { codePlaygrounds } = useCodePlayground()
     <Tooltip :delay-duration="300">
       <TooltipTrigger as-child>
         <Button
-          :variant="route.path.startsWith('/snippets') ? 'default' : 'ghost'"
+          :variant="route.path.startsWith('/code-snippets') ? 'default' : 'ghost'"
           class="size-10 !p-2 text-muted-foreground"
-          :class="route.path.startsWith('/snippets') ? 'bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary border-primary text-white shadow-md shadow-primary/25' : ''"
-          @click="activeView = `snippet:new`"
+          :class="route.path.startsWith('/code-snippets') ? 'bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary border-primary text-white shadow-md shadow-primary/25' : ''"
+          @click="activeView = `code-snippet:new`"
         >
           <!-- alternative button style: :class="route.path.startsWith('/utilities') ? 'bg-primary/10 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/10 border-primary/10 shadow-none text-primary' : ''" -->
           <Code2 class="size-full" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right" align="center">
-        Snippets
+        Code Snippets
       </TooltipContent>
     </Tooltip>
 
     <Tooltip :delay-duration="300">
       <TooltipTrigger as-child>
         <Button
-          :variant="route.path.startsWith('/playground') ? 'default' : 'ghost'"
+          :variant="route.path.startsWith('/code-playgrounds') ? 'default' : 'ghost'"
           class="size-10 !p-2 text-muted-foreground"
-          :class="route.path.startsWith('/playground') ? 'bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary border-primary text-white shadow-md shadow-primary/25' : ''"
-          @click="activeView = `playground:${codePlaygrounds[0].id}`"
+          :class="route.path.startsWith('/code-playgrounds') ? 'bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary border-primary text-white shadow-md shadow-primary/25' : ''"
+          @click="activeView = `code-playground:${codePlaygrounds[0].id}`"
         >
           <!-- alternative button style: :class="route.path.startsWith('/utilities') ? 'bg-primary/10 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/10 border-primary/10 shadow-none text-primary' : ''" -->
           <BugPlay class="size-[95%]" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right" align="center">
-        Playground
+        Code Playgrounds
       </TooltipContent>
     </Tooltip>
   </div>

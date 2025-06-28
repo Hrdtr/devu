@@ -447,7 +447,7 @@ watch(editor, async (container) => {
   }
 
   const extensions = await loadExtensions()
-  // Register Codemirror
+  // Register CodeMirror
   view.value = new EditorView({
     parent: container,
     state: EditorState.create({ doc: value, extensions }),
@@ -643,7 +643,7 @@ const minHeight = computed(() => editor.value?.style.minHeight ? `${editor.value
   <component
     :is="props.tag ?? 'div'"
     ref="editorRef"
-    class="cm-wrapper flex flex-row w-full h-full [&>.cm-editor]:grow [&>.cm-editor]:w-[0] [&>.cm-editor]:h-full border border-input rounded-md overflow-x-auto transition-[color,box-shadow]"
+    class="cm-wrapper flex flex-row w-full h-full [&>.cm-editor]:grow [&>.cm-editor]:w-[0] [&>.cm-editor]:h-full [&>.cm-editor]:cursor-text [&>.cm-editor]:select-auto [&>.cm-editor_.cm-line_span]:cursor-text border border-input rounded-md overflow-x-auto transition-[color,box-shadow]"
     :class="[
       focus ? 'border-ring ring-ring/50 ring-[3px]' : '',
       props.readonly ? '[&_.cm-cursor]:!hidden' : '',

@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'number-base-converter',
-  name: 'Number Base Converter',
-  description: 'Converts a number from one base to another.',
-  icon: undefined,
+  meta: {
+    id: 'number-base-converter',
+    name: 'Number Base Converter',
+    description: 'Converts a number from one base to another.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['number', 'base', 'converter'],
+    related: [],
+  },
   schema: {
     input: z.string().meta({
       description: 'The number to convert.',
@@ -61,9 +66,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  requiresInternet: false,
-  tags: ['number', 'base', 'converter'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

@@ -5,7 +5,6 @@ export default antfu({
   ignores: [
     'node_modules/**',
     'database/migrations/**',
-    'static/livecodes/**',
   ],
 }, {
   rules: {

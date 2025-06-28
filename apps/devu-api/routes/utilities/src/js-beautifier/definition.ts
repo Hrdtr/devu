@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'js-beautifier',
-  name: 'JS Beautifier',
-  description: 'Formats a JavaScript string.',
-  icon: undefined,
+  meta: {
+    id: 'js-beautifier',
+    name: 'JS Beautifier',
+    description: 'Formats a JavaScript string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['javascript', 'beautification'],
+    related: ['js-minifier'],
+  },
   schema: {
     input: z.string().meta({
       description: 'The JavaScript string to beautify.',
@@ -284,9 +289,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  requiresInternet: false,
-  tags: ['javascript', 'beautification'],
-  related: ['js-minifier'],
 })
 
 export type Input = z.input<typeof schema.input>

@@ -17,7 +17,7 @@ const lightBase = {
   atom: '#b45309', // Atom, Bool, Special
   invalid: '#b91c1c', // Invalid
   gutterBackground: 'var(--background)', // Gutter background (base: '#f1f5f9')
-  gutterText: 'var(--foreground)', // Gutter foreground (base: '#1e293b')
+  gutterText: 'var(--muted-foreground)', // Gutter foreground (base: '#1e293b')
   deletedBackground: '#fee2e2', // Deleted background
   deletedText: '#7f1d1d', // Deleted text
   tooltipBackground: 'var(--card)', // Tooltip background (base: '#f1f5f9')
@@ -38,7 +38,7 @@ const darkBase = {
   atom: '#ffab70', // Atom, Bool, Special
   invalid: '#f97583', // Invalid
   gutterBackground: 'var(--background)', // Gutter background (base: '#161b22')
-  gutterText: 'var(--foreground)', // Gutter foreground (base: '#c9d1d9')
+  gutterText: 'var(--muted-foreground)', // Gutter foreground (base: '#c9d1d9')
   deletedBackground: '#ffdcd7', // Deleted background
   deletedText: '#ffeef0', // Deleted text
   tooltipBackground: 'var(--card)', // Tooltip background (base: '#161b22')
@@ -124,10 +124,7 @@ function createThemeSyntaxHighlighting(options?: { dark: boolean }) {
     { tag: [t.standard(t.tagName), t.tagName], color: base.tag },
     { tag: [t.comment, t.bracket], color: base.comment },
     { tag: [t.className, t.propertyName], color: base.class },
-    {
-      tag: [t.variableName, t.attributeName, t.number, t.operator],
-      color: base.variable,
-    },
+    { tag: [t.variableName, t.attributeName, t.number, t.operator], color: base.variable },
     { tag: [t.keyword, t.typeName, t.typeOperator], color: base.keyword },
     { tag: [t.string, t.meta, t.regexp], color: base.string },
     { tag: [t.name, t.quote], color: base.tag },

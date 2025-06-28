@@ -87,7 +87,7 @@ Devu is a versatile development utility that provides a suite of tools to enhanc
 ## Features
 
 - **LLM Chat:** Interact with large language models. Supports providers like Anthropic, Google GenAI, Ollama, and OpenAI.
-- **Code Playground:** Experiment with code snippets and execute them in a safe environment using Livecodes.
+- **Code Playground:** Experiment with code snippets and execute them in a safe environment.
 - **Code Snippets:** Create, store, and manage reusable code snippets.
 - **Utilities:** Access a collection of useful development utilities such as code formatting, minification, and conversion.
 

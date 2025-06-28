@@ -1,5 +1,6 @@
 import { createTool } from '@mastra/core'
 import { z } from 'zod/v3'
+import { toJSONSchema } from 'zod/v4'
 import * as utilities from '@/routes/utilities/src'
 
 // Building type declaration throws error if not imported
@@ -9,8 +10,8 @@ import * as _ from '@mastra/core/tools'
 let parameterGuidanceForDescription = '\nSpecific parameter structures depend on the \'utility_id\':\n\n'
 for (const utility of Object.values(utilities)) {
   parameterGuidanceForDescription += `${utility.meta.name} (${utility.meta.id}): ${utility.meta.description}\n`
-  parameterGuidanceForDescription += `input:\n${JSON.stringify(utility.meta.schema.input, null, 2)}\n`
-  parameterGuidanceForDescription += `options:\n${JSON.stringify(utility.meta.schema.options, null, 2)}\n\n`
+  parameterGuidanceForDescription += `input:\n${JSON.stringify(toJSONSchema(utility.schema.input), null, 2)}\n`
+  parameterGuidanceForDescription += `options:\n${JSON.stringify(toJSONSchema(utility.schema.options), null, 2)}\n\n`
 }
 
 export const invokeUtility = createTool({

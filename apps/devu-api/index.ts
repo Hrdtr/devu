@@ -122,20 +122,47 @@ Bun.serve({
       return new Response('Not Found', { status: 404 })
     }
 
-    // This isn't really used rn. We need to wait for full offline support of LiveCodes
-    // See: https://github.com/live-codes/livecodes/issues/807
-    else if (pathname.startsWith('/livecodes')) {
-      const path = resolve(join(dirname(fileURLToPath(import.meta.url)), 'static', ...pathname.split('/')))
-      try {
-        const file = Bun.file(path)
-        if (await file.exists()) {
-          return new Response(file)
-        }
-
-        return Response.redirect('/livecodes/index.html', 302)
+    else if (pathname === '/proxy') {
+      // Parse the request URL and target URL from query
+      const url = new URL(request.url)
+      const targetUrl = url.searchParams.get('url')
+      if (!targetUrl) {
+        return new Response('Missing \'url\' parameter', { status: 400 })
       }
-      catch {
-        return new Response('Not found', { status: 404 })
+
+      console.info(`[proxy] Proxying request to ${targetUrl}`)
+
+      // Clone the incoming request (method, headers, body)
+      const method = request.method
+      const headers = new Headers(request.headers)
+      headers.delete('host') // Don't forward 'host' header
+      headers.delete('accept-encoding') // remove Accept-Encoding
+
+      // Forward the request to the target
+      try {
+        const proxyResponse = await fetch(targetUrl, {
+          method,
+          headers,
+          body: ['GET', 'HEAD'].includes(method) ? undefined : request.body,
+          redirect: 'follow',
+        })
+
+        // Build response for the client
+        const responseHeaders = new Headers(proxyResponse.headers)
+        // Adjust CORS headers
+        responseHeaders.set('Access-Control-Allow-Origin', '*')
+        // Also remove Content-Encoding header just in case it still returned by the upstream server
+        responseHeaders.delete('content-encoding')
+
+        return new Response(proxyResponse.body, {
+          status: proxyResponse.status,
+          statusText: proxyResponse.statusText,
+          headers: responseHeaders,
+        })
+      }
+      catch (err) {
+        console.error('Proxy error:', err)
+        return new Response('Error proxying request', { status: 500 })
       }
     }
 

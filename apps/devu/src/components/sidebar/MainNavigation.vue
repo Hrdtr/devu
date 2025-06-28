@@ -244,9 +244,9 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
         </ListboxItem>
       </ListboxVirtualizer>
 
-      <!-- Snippets -->
+      <!-- Code Snippets -->
       <ListboxVirtualizer
-        v-if="route.path.startsWith('/snippet')"
+        v-if="route.path.startsWith('/code-snippets')"
         v-slot="{ option }"
         :options="codeSnippets.data"
         :text-content="(opt) => opt.name"
@@ -254,10 +254,10 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
       >
         <ListboxItem
           :key="option.id"
-          :value="`snippet:${option.id}`"
+          :value="`code-snippet:${option.id}`"
           :class="[
             sidebarMenuButtonVariants(),
-            activeView === `snippet:${option.id}` ? '!bg-primary/5 !text-primary' : '',
+            activeView === `code-snippet:${option.id}` ? '!bg-primary/5 !text-primary' : '',
           ]"
           class="relative w-full cursor-default group/item !p-0 data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground data-[highlighted]:[&_button]:opacity-100 data-[state=checked]:bg-sidebar-accent data-[state=checked]:text-sidebar-accent-foreground data-[state=checked]:[&_button]:opacity-100"
         >
@@ -267,7 +267,7 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
             </TooltipTrigger>
             <TooltipContent side="right" align="start">
               <p class="font-medium">
-                {{ option.name }} snippet
+                {{ option.name }}
               </p>
               <!-- <p class="opacity-80">
                 {{ option.description }}
@@ -277,9 +277,9 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
         </ListboxItem>
       </ListboxVirtualizer>
 
-      <!-- Playgrounds -->
+      <!-- Code Playgrounds -->
       <ListboxVirtualizer
-        v-if="route.path.startsWith('/playground')"
+        v-if="route.path.startsWith('/code-playgrounds')"
         v-slot="{ option }"
         :options="codePlaygrounds"
         :text-content="(opt) => opt.name"
@@ -287,10 +287,10 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
       >
         <ListboxItem
           :key="option.id"
-          :value="`playground:${option.id}`"
+          :value="`code-playground:${option.id}`"
           :class="[
             sidebarMenuButtonVariants(),
-            activeView === `playground:${option.id}` ? '!bg-primary/5 !text-primary' : '',
+            activeView === `code-playground:${option.id}` ? '!bg-primary/5 !text-primary' : '',
           ]"
           class="relative w-full cursor-default group/item !p-0 data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground data-[highlighted]:[&_button]:opacity-100 data-[state=checked]:bg-sidebar-accent data-[state=checked]:text-sidebar-accent-foreground data-[state=checked]:[&_button]:opacity-100"
         >
@@ -300,11 +300,11 @@ const { height: sidebarGroupHeaderHeight } = useElementBounding(() => unrefEleme
             </TooltipTrigger>
             <TooltipContent side="right" align="start">
               <p class="font-medium">
-                {{ option.name }} playground
+                {{ option.name }} <span class="opacity-80 font-normal">({{ option.kind }})</span>
               </p>
-              <!-- <p class="opacity-80">
+              <p class="opacity-80">
                 {{ option.description }}
-              </p> -->
+              </p>
             </TooltipContent>
           </Tooltip>
         </ListboxItem>

@@ -184,7 +184,7 @@ const submit = handleSubmit(async (formValues) => {
             :href="providers.find(p => p.id === provider)!.apiKeyRefUrl!"
             target="_blank"
             rel="noopener noreferrer"
-            @click.prevent="openUrl(providers.find(p => p.id === provider)!.apiKeyRefUrl!)"
+            @click.stop.prevent="openUrl(providers.find(p => p.id === provider)!.apiKeyRefUrl!)"
           >{{ providers.find(p => p.id === provider)!.name }} API key</a>.
         </p>
         <ErrorMessage name="credentials.apiKey" class="text-destructive-foreground text-sm mt-1.5" />
