@@ -1,18 +1,11 @@
 import { Buffer } from 'node:buffer'
 import { ORPCError } from '@orpc/server'
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
-import { and, createId, desc, eq, ilike, lt, or, schema } from '@/database'
+import { and, createId, desc, eq, lt, or, schema, sql } from '@/database'
 import { defineRoute, srv } from '@/utils'
 
-const codeSnippetSchema = z.object({
-  id: z.uuidv7(),
-  createdAt: z.date(),
-  lastUpdatedAt: z.date().nullable(),
-  name: z.string(),
-  language: z.string(),
-  code: z.string(),
-  notes: z.string().nullable(),
-})
+const codeSnippetSchema = createSelectSchema(schema.codeSnippet)
 
 export const codeSnippet = srv
   .prefix('/code-snippets')
@@ -83,8 +76,8 @@ export const codeSnippet = srv
               : undefined,
             search
               ? or(
-                  ilike(schema.codeSnippet.name, `%${search}%`),
-                  ilike(schema.codeSnippet.code, `%${search}%`),
+                  sql`${schema.codeSnippet.name} LIKE ${`%${search}%`} COLLATE NOCASE`,
+                  sql`${schema.codeSnippet.code} LIKE ${`%${search}%`} COLLATE NOCASE`,
                 )
               : undefined,
             context.parsedCursor
@@ -102,7 +95,7 @@ export const codeSnippet = srv
         })
 
         let nextCursor: string | null = null
-        if (data.length === limit) {
+        if (limit !== -1 && data.length === limit) {
           const lastDataEntry = data[data.length - 1]!
           nextCursor = Buffer.from(JSON.stringify({
             lastUpdatedAt: lastDataEntry.lastUpdatedAt.toISOString(),

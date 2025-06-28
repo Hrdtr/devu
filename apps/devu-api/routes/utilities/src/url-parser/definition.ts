@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'url-parser',
-  name: 'URL Parser',
-  description: 'Parses a URL string into its components.',
-  icon: undefined,
+  meta: {
+    id: 'url-parser',
+    name: 'URL Parser',
+    description: 'Parses a URL string into its components.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['url', 'parser'],
+    related: [],
+  },
   schema: {
     input: z
       .string()
@@ -96,10 +101,6 @@ export const { meta, schema } = createDefinition({
       }),
     }),
   },
-  dependencies: [],
-  requiresInternet: false,
-  tags: ['url', 'parser'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

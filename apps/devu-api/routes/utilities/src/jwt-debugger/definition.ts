@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'jwt-debugger',
-  name: 'JWT Debugger',
-  description: 'Debugs a JWT token.',
-  icon: undefined,
+  meta: {
+    id: 'jwt-debugger',
+    name: 'JWT Debugger',
+    description: 'Debugs a JWT token.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['jwt', 'debugger'],
+    related: [],
+  },
   schema: {
     input: z.string().meta({
       description: 'The JWT token to debug.',
@@ -97,10 +102,6 @@ export const { meta, schema } = createDefinition({
       }),
     }),
   },
-  dependencies: ['jsonwebtoken'],
-  requiresInternet: false,
-  tags: ['jwt', 'debugger'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

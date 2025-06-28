@@ -46,7 +46,7 @@ const activeMenu = ref(data.nav.find(item => item.name === 'General') || data.na
                       class="cursor-default data-[active=true]:!bg-primary/5 data-[active=true]:!text-primary data-[active=true]:!font-normal"
                       :is-active="activeMenu.name === item.name"
                     >
-                      <a href="#" @click="activeMenu = item">
+                      <a href="#" @click.stop.prevent="activeMenu = item">
                         <component :is="item.icon" />
                         <span>{{ item.name }}</span>
                       </a>

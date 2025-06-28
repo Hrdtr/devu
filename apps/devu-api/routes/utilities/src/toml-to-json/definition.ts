@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'toml-to-json',
-  name: 'TOML to JSON',
-  description: 'Converts a TOML string to a JSON string.',
-  icon: undefined,
+  meta: {
+    id: 'toml-to-json',
+    name: 'TOML to JSON',
+    description: 'Converts a TOML string to a JSON string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['toml', 'json', 'converter'],
+    related: ['json-to-toml'],
+  },
   schema: {
     input: z.string().meta({
       description: 'The TOML string to convert to JSON.',
@@ -30,10 +35,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['@iarna/toml'],
-  requiresInternet: false,
-  tags: ['toml', 'json', 'converter'],
-  related: ['json-to-toml'],
 })
 
 export type Input = z.input<typeof schema.input>

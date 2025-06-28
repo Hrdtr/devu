@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'css-minifier',
-  name: 'CSS Minifier',
-  description: 'Minifies a CSS string.',
-  icon: undefined,
+  meta: {
+    id: 'css-minifier',
+    name: 'CSS Minifier',
+    description: 'Minifies a CSS string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['css', 'minification'],
+    related: ['css-beautifier'],
+  },
   schema: {
     input: z.string().meta({
       description: 'The CSS string to minify.',
@@ -116,10 +121,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['clean-css'],
-  requiresInternet: false,
-  tags: ['css', 'minification'],
-  related: ['css-beautifier'],
 })
 
 export type Input = z.input<typeof schema.input>

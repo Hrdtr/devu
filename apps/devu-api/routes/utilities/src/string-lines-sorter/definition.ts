@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'string-lines-sorter',
-  name: 'String Lines Sorter',
-  description: 'Sorts lines in a string.',
-  icon: undefined,
+  meta: {
+    id: 'string-lines-sorter',
+    name: 'String Lines Sorter',
+    description: 'Sorts lines in a string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['string', 'sort', 'lines'],
+    related: [],
+  },
   schema: {
     input: z.string().meta({
       description: 'The string to sort lines from.',
@@ -64,10 +69,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: [],
-  requiresInternet: false,
-  tags: ['string', 'sort', 'lines'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

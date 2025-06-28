@@ -21,16 +21,17 @@ onActivated(() => (activated.value = true))
 onDeactivated(() => (activated.value = false))
 watch(() => route.fullPath, () => (activated.value = false))
 
-const { $fetch, client, safe } = useApi()
+const { client, safe } = useApi()
 const { title } = usePageMeta()
 
-const meta = ref<null | undefined | ApiRouteOutput['utility']['all'][number]>(null)
+const meta = await client.utility.retrieve({ id: String(route.params.id) })
+const schema = await client.utility.schema({ id: String(route.params.id) })
+
 onMounted(async () => {
-  meta.value = await $fetch(`/utilities/${route.params.id}`).then(response => response.json())
-  title.value = meta.value ? `Utility: ${meta.value.name}` : undefined
+  title.value = `Utility: ${meta.name}`
 })
 onActivated(() => {
-  title.value = meta.value ? `Utility: ${meta.value.name}` : undefined
+  title.value = `Utility: ${meta.name}`
 })
 
 const inputRef = useTemplateRef('input')
@@ -39,35 +40,22 @@ const outputRef = useTemplateRef('output')
 
 async function submit() {
   if (inputRef.value) {
-    const [inputValues, optionsValues] = await Promise.all([inputRef.value.submit(), optionsRef.value?.submit()])
-    if (inputRef.value.error || optionsRef.value?.error) {
+    const [inputValidationResult, optionsValidationResult] = await Promise.all([inputRef.value.validate(), optionsRef.value?.validate()])
+    if (!inputValidationResult.valid || (optionsValidationResult ? !optionsValidationResult.valid : false)) {
       return
     }
-    const values = { input: inputValues, options: optionsValues || null }
-
-    let response: any
-    const fetchResponse = await $fetch(`/utilities/${route.params.id}/invoke`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(values),
-    })
-    try {
-      response = await fetchResponse.json()
-    }
-    catch (e) {
-      response = await fetchResponse.text().catch(() => {
-        toast.error((e as Error)?.message || 'Something went wrong')
-        return undefined
-      })
+    const values = {
+      input: inputValidationResult.data,
+      options: optionsValidationResult?.data || null,
     }
 
-    if (!response) {
+    const { data, error } = await safe(client.utility.invoke({ id: String(route.params.id), input: values.input, options: values.options }))
+    if (error) {
+      toast.error(error.message)
       return
     }
 
-    outputRef.value?.setValue(response)
+    outputRef.value?.setData(data)
     if (mainElementRef.value) {
       mainElementRef.value.scrollTo({ top: (outputRef.value?.$el.offsetTop || 0) - 72, behavior: 'smooth' })
     }
@@ -88,7 +76,7 @@ onMounted(fetchInvocationHistories)
 </script>
 
 <template>
-  <div v-if="meta" class="p-4 grid grid-cols-1 @3xl:grid-cols-2 gap-4">
+  <div v-if="meta && schema" class="p-4 grid grid-cols-1 @3xl:grid-cols-2 gap-4">
     <Teleport v-if="activated" to="#header-end">
       <div class="shrink-0 flex flex-row items-center justify-end gap-2 -mr-2">
         <ResponsiveDialog v-model:open="historyDialogVisible">
@@ -102,23 +90,24 @@ onMounted(fetchInvocationHistories)
               <span class="sr-only">Invocation Histories</span>
             </Button>
           </ResponsiveDialogTrigger>
-          <ResponsiveDialogContent class="max-h-[80vh] flex flex-col">
-            <ResponsiveDialogHeader>
+          <ResponsiveDialogContent class="max-h-[80vh] flex flex-col p-0">
+            <ResponsiveDialogHeader class="p-6 pb-0">
               <ResponsiveDialogTitle>Invocation Histories</ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
                 Here are the invocation histories for this utility.
               </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
 
-            <div class="flex flex-col overflow-y-auto">
+            <div class="flex-1 overflow-hidden">
               <UtilityInvocationHistories
                 :utility="String(route.params.id)"
+                class="[&_>_div.search-wrapper]:px-6 [&_>_div.search-wrapper]:pt-4 [&_>_div_.overflow-y-auto]:p-6 [&_>_div_.overflow-y-auto]:pt-0 [&_>_div_.overflow-y-auto]:!max-h-[40vh]"
                 @restore="(value) => {
-                  inputRef?.setValue(value.input)
+                  inputRef?.setData(value.input)
                   if (value.options) {
-                    optionsRef?.setValue(value.options)
+                    optionsRef?.setData(value.options)
                   }
-                  outputRef?.setValue(value.output)
+                  outputRef?.setData(value.output)
                   historyDialogVisible = false
                 }"
               />
@@ -132,15 +121,15 @@ onMounted(fetchInvocationHistories)
       <JSONSchemaForm
         ref="input"
         as="fieldset"
-        :schema="meta.schema.input"
+        :schema="schema.input"
         class="[&_button[type=submit]]:hidden"
       />
-      <Separator v-if="meta.schema.options && meta.schema.options.type !== 'null'" class="my-4" />
+      <Separator v-if="schema.options && schema.options.type !== 'null'" class="my-4" />
       <JSONSchemaForm
-        v-if="meta.schema.options && meta.schema.options.type !== 'null'"
+        v-if="schema.options && schema.options.type !== 'null'"
         ref="options"
         as="fieldset"
-        :schema="meta.schema.options"
+        :schema="schema.options"
         class="[&_button[type=submit]]:hidden grid @2xl:grid-cols-2 gap-x-4"
       />
       <div class="flex flex-row justify-end mt-2">
@@ -151,6 +140,6 @@ onMounted(fetchInvocationHistories)
       </div>
     </form>
 
-    <UtilityOutput ref="output" as="div" :schema="meta.schema.output" />
+    <UtilityOutput ref="output" as="div" :schema="schema.output" />
   </div>
 </template>

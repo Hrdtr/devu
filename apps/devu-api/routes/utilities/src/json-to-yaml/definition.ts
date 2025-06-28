@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'json-to-yaml',
-  name: 'JSON to YAML',
-  description: 'Converts a JSON string to a YAML string.',
-  icon: undefined,
+  meta: {
+    id: 'json-to-yaml',
+    name: 'JSON to YAML',
+    description: 'Converts a JSON string to a YAML string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['json', 'yaml', 'converter'],
+    related: ['yaml-to-json'],
+  },
   schema: {
     input: z.string().meta({
       description: 'The JSON string to convert to YAML.',
@@ -79,10 +84,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['js-yaml'],
-  requiresInternet: false,
-  tags: ['json', 'yaml', 'converter'],
-  related: ['yaml-to-json'],
 })
 
 export type Input = z.input<typeof schema.input>

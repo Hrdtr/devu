@@ -7,17 +7,13 @@ import { defineConfig } from 'vite'
 const host = process.env.TAURI_DEV_HOST
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig({
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@api': path.resolve(__dirname, '../devu-api'),
     },
-  },
-
-  optimizeDeps: {
-    exclude: ['@electric-sql/pglite'],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
@@ -35,4 +31,4 @@ export default defineConfig(async () => ({
       ignored: ['**/tauri/**'],
     },
   },
-}))
+})

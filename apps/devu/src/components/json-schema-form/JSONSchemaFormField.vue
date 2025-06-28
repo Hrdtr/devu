@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useClipboardItems } from '@vueuse/core'
+import { useClipboardItems, useVModel } from '@vueuse/core'
 import { Check, Clipboard, Copy } from 'lucide-vue-next'
-import { ErrorMessage, Field } from 'vee-validate'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { CodeMirror } from '@/components/code-mirror'
@@ -14,6 +13,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 const props = defineProps<{
+  modelValue?: any
+  error?: string
+  disabled?: boolean
+  readonly?: boolean
+  actions?: {
+    copy?: boolean
+    paste?: boolean
+  }
+  // Field def
+  type: string
   name: string
   label: string
   description?: string
@@ -22,13 +31,13 @@ const props = defineProps<{
   options?: string[]
   component?: string
   attrs?: Record<string, any>
-  disabled?: boolean
-  readonly?: boolean
-  actions?: {
-    copy?: boolean
-    paste?: boolean
-  }
 }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: any]
+  'focus': [event: FocusEvent]
+  'blur': [event: FocusEvent]
+}>()
+const value = useVModel(props, 'modelValue', emit, { passive: true })
 
 const { copy, copied, isSupported } = useClipboardItems()
 
@@ -37,21 +46,23 @@ function createClipboardItem(type: string, data: any) {
 }
 
 const pasted = ref(false)
-async function paste(setValue: (val: string) => void | Promise<void>) {
-  if (!isSupported.value)
+async function paste() {
+  if (!isSupported.value) {
     return
+  }
 
   try {
     const items = await navigator.clipboard.read()
-    if (!items.length)
+    if (!items.length) {
       return
+    }
 
     const item = items[0]
     const type = item.types.find(t => t === 'text/plain') || item.types[0]
     const blob = await item.getType(type)
     const text = await blob.text()
 
-    await setValue(text)
+    value.value = text
     pasted.value = true
 
     setTimeout(() => pasted.value = false, 1500)
@@ -64,129 +75,139 @@ async function paste(setValue: (val: string) => void | Promise<void>) {
 </script>
 
 <template>
-  <div>
-    <Field v-slot="{ componentField, value, handleChange }" :name="props.name">
-      <div class="flex flex-row justify-between items-center gap-4 mb-2">
-        <Label v-if="props.component !== 'Checkbox'" :for="props.name">{{ props.label }}</Label>
-        <template
-          v-if="
-            isSupported
-              && props.actions?.paste
-              && ['Input', 'Textarea', 'CodeMirror'].includes(props.component || '')
-          "
-        >
-          <Tooltip :delay-duration="500">
-            <TooltipTrigger as-child>
-              <button type="button" @click="!pasted && paste(handleChange)">
-                <component :is="pasted ? Check : Clipboard" class="size-4" :class="pasted ? 'text-green-500' : ''" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {{ copied ? 'Pasted' : 'Paste from Clipboard' }}
-            </TooltipContent>
-          </Tooltip>
-        </template>
-        <template
-          v-if="
-            isSupported
-              && props.actions?.copy
-              && value
-              && ['Input', 'Textarea', 'CodeMirror'].includes(props.component || '')
-          "
-        >
-          <Tooltip :delay-duration="500">
-            <TooltipTrigger as-child>
-              <button
-                type="button"
-                @click="!copied && copy([createClipboardItem('text/plain', value)]).catch(toast.error)"
-              >
-                <component :is="copied ? Check : Copy" class="size-4" :class="copied ? 'text-green-500' : ''" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {{ copied ? 'Copied' : 'Copy to Clipboard' }}
-            </TooltipContent>
-          </Tooltip>
-        </template>
-      </div>
-      <template v-if="props.component === 'Select'">
-        <Select v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }">
-          <SelectTrigger class="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem v-for="option in props.options" :key="option" :value="option">
-                {{ option }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+  <div class="flex flex-col">
+    <div class="flex flex-row justify-between items-center gap-4 mb-2">
+      <Label v-if="props.component !== 'Checkbox'" :for="props.name">{{ props.label }}</Label>
+      <template
+        v-if="
+          isSupported
+            && props.actions?.paste
+            && ['Input', 'Textarea', 'CodeMirror'].includes(props.component || '')
+        "
+      >
+        <Tooltip :delay-duration="500">
+          <TooltipTrigger as-child>
+            <button type="button" @click="!pasted && paste()">
+              <component :is="pasted ? Check : Clipboard" class="size-4" :class="pasted ? 'text-green-500' : ''" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {{ copied ? 'Pasted' : 'Paste from Clipboard' }}
+          </TooltipContent>
+        </Tooltip>
       </template>
-
-      <template v-else-if="props.component === 'Checkbox'">
-        <label
-          class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-3 shadow transition-colors"
-          :class="value ? 'border-ring' : 'border-input'"
-          v-bind="{ ...props.attrs }"
-        >
-          <Checkbox
-            :id="props.name"
-            :model-value="value"
-            v-bind="{ disabled: props.disabled || props.readonly, readonly: props.readonly }"
-            :class="{ '!opacity-100 !cursor-default': !props.disabled && props.readonly }"
-            @update:model-value="handleChange"
-          />
-          <div class="space-y-1 leading-none">
-            <Label :for="props.name">{{ props.label }}</Label>
-            <p v-if="props.description" class="text-muted-foreground text-sm mt-1.5">
-              {{ props.description }}
-            </p>
-          </div>
-        </label>
+      <template
+        v-if="
+          isSupported
+            && props.actions?.copy
+            && value
+            && ['Input', 'Textarea', 'CodeMirror'].includes(props.component || '')
+        "
+      >
+        <Tooltip :delay-duration="500">
+          <TooltipTrigger as-child>
+            <button
+              type="button"
+              @click="!copied && copy([createClipboardItem('text/plain', value)]).catch(toast.error)"
+            >
+              <component :is="copied ? Check : Copy" class="size-4" :class="copied ? 'text-green-500' : ''" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {{ copied ? 'Copied' : 'Copy to Clipboard' }}
+          </TooltipContent>
+        </Tooltip>
       </template>
+    </div>
 
-      <template v-else-if="props.component === 'TagsInput'">
-        <TagsInput
-          v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
-          :model-value="value"
-          @update:model-value="handleChange"
-        >
-          <TagsInputItem v-for="item in componentField.modelValue" :key="item" :value="item">
-            <TagsInputItemText />
-            <TagsInputItemDelete />
-          </TagsInputItem>
-          <TagsInputInput />
-        </TagsInput>
-      </template>
+    <template v-if="props.component === 'Select'">
+      <Select
+        v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+        v-model="value"
+      >
+        <SelectTrigger class="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem v-for="option in props.options" :key="option" :value="option">
+              {{ option }}
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </template>
 
-      <template v-else-if="props.component === 'CodeMirror'">
-        <CodeMirror
-          v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
-          :model-value="value"
-          @update:model-value="handleChange"
+    <template v-else-if="props.component === 'Checkbox'">
+      <label
+        class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-3 shadow transition-colors"
+        :class="value ? 'border-ring' : 'border-input'"
+        v-bind="{ ...props.attrs }"
+      >
+        <Checkbox
+          :id="props.name"
+          v-bind="{ disabled: props.disabled || props.readonly, readonly: props.readonly }"
+          v-model="value"
+          :class="{ '!opacity-100 !cursor-default': !props.disabled && props.readonly }"
         />
-      </template>
+        <div class="space-y-1 leading-none">
+          <Label :for="props.name">{{ props.label }}</Label>
+          <p v-if="props.description" class="text-muted-foreground text-sm mt-1.5 whitespace-pre-line">
+            {{ props.description }}
+          </p>
+        </div>
+      </label>
+    </template>
 
-      <template v-else-if="props.component === 'Textarea'">
-        <Textarea v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }" autocorrect="off" />
-      </template>
+    <template v-else-if="props.component === 'TagsInput'">
+      <TagsInput
+        v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+        v-model="value"
+      >
+        <TagsInputItem v-for="item in value" :key="item" :value="item">
+          <TagsInputItemText />
+          <TagsInputItemDelete />
+        </TagsInputItem>
+        <TagsInputInput />
+      </TagsInput>
+    </template>
 
-      <template v-else-if="props.component === 'Input'">
-        <Input v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }" autocorrect="off" />
-      </template>
+    <template v-else-if="props.component === 'CodeMirror'">
+      <CodeMirror
+        v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+        v-model="value"
+      />
+    </template>
 
-      <template v-else>
-        <component
-          :is="props.component"
-          v-bind="{ ...componentField, ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
-        />
-      </template>
-    </Field>
+    <template v-else-if="props.component === 'Textarea'">
+      <Textarea
+        v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+        v-model="value"
+        autocorrect="off"
+      />
+    </template>
 
-    <p v-if="props.description && props.component !== 'Checkbox'" class="text-muted-foreground text-sm mt-1.5">
+    <template v-else-if="props.component === 'Input'">
+      <Input
+        v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+        v-model="value"
+        autocorrect="off"
+      />
+    </template>
+
+    <template v-else>
+      <component
+        :is="props.component"
+        v-bind="{ ...props.attrs, disabled: props.disabled, readonly: props.readonly }"
+        v-model="value"
+      />
+    </template>
+
+    <p v-if="props.description && props.component !== 'Checkbox'" class="text-muted-foreground text-sm mt-1.5 whitespace-pre-line">
       {{ props.description }}
     </p>
-    <ErrorMessage :name="props.name" class="text-destructive-foreground text-sm mt-1.5" />
+    <span v-if="props.error" class="text-destructive-foreground text-sm mt-1.5">
+      {{ props.error }}
+    </span>
   </div>
 </template>

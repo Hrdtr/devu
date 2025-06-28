@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'json-formatter',
-  name: 'JSON Formatter',
-  description: 'Formats a JSON string.',
-  icon: undefined,
+  meta: {
+    id: 'json-formatter',
+    name: 'JSON Formatter',
+    description: 'Formats a JSON string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['json', 'formatting'],
+    related: [],
+  },
   schema: {
     input: z.string().meta({
       description: 'The JSON string to format.',
@@ -46,10 +51,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: [],
-  requiresInternet: false,
-  tags: ['json', 'formatting'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'json-to-csv',
-  name: 'JSON to CSV',
-  description: 'Converts a JSON string to a CSV string.',
-  icon: undefined,
+  meta: {
+    id: 'json-to-csv',
+    name: 'JSON to CSV',
+    description: 'Converts a JSON string to a CSV string.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['json', 'csv', 'converter'],
+    related: ['csv-to-json'],
+  },
   schema: {
     input: z.string().meta({
       description: 'The JSON string to convert to CSV.',
@@ -114,10 +119,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['@json2csv/plainjs'],
-  requiresInternet: false,
-  tags: ['json', 'csv', 'converter'],
-  related: ['csv-to-json'],
 })
 
 export type Input = z.input<typeof schema.input>

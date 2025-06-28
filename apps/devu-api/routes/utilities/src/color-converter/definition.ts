@@ -2,10 +2,15 @@ import { z } from 'zod/v4'
 import { createDefinition } from '../_shared/create-definition'
 
 export const { meta, schema } = createDefinition({
-  id: 'color-converter',
-  name: 'Color Converter',
-  description: 'Converts between different color formats.',
-  icon: undefined,
+  meta: {
+    id: 'color-converter',
+    name: 'Color Converter',
+    description: 'Converts between different color formats.',
+    icon: undefined,
+    requiresInternet: false,
+    tags: ['color', 'converter'],
+    related: [],
+  },
   schema: {
     input: z.string().meta({
       description: 'The color to convert.',
@@ -46,10 +51,6 @@ export const { meta, schema } = createDefinition({
       },
     }),
   },
-  dependencies: ['color-convert'],
-  requiresInternet: false,
-  tags: ['color', 'converter'],
-  related: [],
 })
 
 export type Input = z.input<typeof schema.input>

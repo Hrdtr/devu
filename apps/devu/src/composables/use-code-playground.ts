@@ -1,162 +1,45 @@
 import type { MaybeRefOrGetter } from 'vue'
+import type { ApiRouteOutput } from './use-api'
 import { createGlobalState } from '@vueuse/core'
 import { useFilter } from 'reka-ui'
 import { onMounted, ref, toValue, watch } from 'vue'
-
-export interface CodePlayground {
-  id: string
-  name: string
-  inputs: string[]
-  icon?: string
-  referenceUrl: string
-}
-
-const $codePlaygrounds: CodePlayground[] = [
-  {
-    id: 'markdown',
-    name: 'Markdown',
-    inputs: ['markdown'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/markdown',
-  },
-  {
-    id: 'html',
-    name: 'HTML',
-    inputs: ['html', 'css', 'javascript'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/html',
-  },
-  {
-    id: 'javascript',
-    name: 'JavaScript',
-    inputs: ['javascript'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/javascript',
-  },
-  {
-    id: 'typescript',
-    name: 'TypeScript',
-    inputs: ['typescript'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/typescript',
-  },
-  {
-    id: 'mjml',
-    name: 'MJML',
-    inputs: ['mjml'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/mjml',
-  },
-  {
-    id: 'python',
-    name: 'Python (Pyodide)',
-    inputs: ['python'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/python-wasm',
-  },
-  // TODO: Golang need to wait for livecodes support of wasm based execution
-  // See: https://github.com/live-codes/livecodes/issues/796
-  // {
-  //   id: 'go',
-  //   name: 'Go',
-  //   editors: ['script'],
-  //   icon: undefined,
-  //   referenceUrl: 'https://livecodes.io/docs/languages/go',
-  // },
-  {
-    id: 'cpp',
-    name: 'C++',
-    inputs: ['cpp'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/cpp-wasm',
-  },
-  {
-    id: 'csharp',
-    name: 'C#',
-    inputs: ['csharp'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/csharp-wasm',
-  },
-  {
-    id: 'java',
-    name: 'Java',
-    inputs: ['java'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/java',
-  },
-  {
-    id: 'php',
-    name: 'PHP',
-    inputs: ['php'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/php-wasm',
-  },
-  {
-    id: 'perl',
-    name: 'Perl',
-    inputs: ['perl'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/perl',
-  },
-  {
-    id: 'ruby',
-    name: 'Ruby',
-    inputs: ['ruby'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/ruby-wasm',
-  },
-  {
-    id: 'lua',
-    name: 'Lua',
-    inputs: ['lua'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/lua-wasm',
-  },
-  {
-    id: 'julia',
-    name: 'Julia',
-    inputs: ['julia'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/julia',
-  },
-  {
-    id: 'gleam',
-    name: 'Gleam',
-    inputs: ['gleam'],
-    icon: undefined,
-    referenceUrl: 'https://livecodes.io/docs/languages/gleam',
-  },
-]
-
-export const codePlaygrounds = $codePlaygrounds
+import { toast } from 'vue-sonner'
+import { useApi } from './use-api'
 
 export const useCodePlaygroundData = createGlobalState(() => {
-  const playgroundState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
-  const allCodePlaygrounds = ref<CodePlayground[]>([])
-  const codePlaygrounds = ref<CodePlayground[]>([])
+  const codePlaygroundState = ref<'idle' | 'loading' | 'loadingMore' | 'pending'>('idle')
+  const allCodePlaygrounds = ref<ApiRouteOutput['codePlayground']['all']>([])
+  const codePlaygrounds = ref<ApiRouteOutput['codePlayground']['all']>([])
 
-  return { playgroundState, allCodePlaygrounds, codePlaygrounds }
+  return { codePlaygroundState, allCodePlaygrounds, codePlaygrounds }
 })
 
 export function useCodePlayground({ search }: { search?: MaybeRefOrGetter<string> } = {}) {
+  const { client, safe } = useApi()
   const { contains } = useFilter({ sensitivity: 'base' })
-  const { playgroundState, allCodePlaygrounds, codePlaygrounds } = useCodePlaygroundData()
+  const { codePlaygroundState, allCodePlaygrounds, codePlaygrounds } = useCodePlaygroundData()
 
   const loadCodePlaygrounds = async () => {
-    if (playgroundState.value !== 'idle') {
+    if (codePlaygroundState.value !== 'idle') {
       return
     }
-    playgroundState.value = 'loading'
-    allCodePlaygrounds.value = $codePlaygrounds
+    codePlaygroundState.value = 'loading'
+    const { data, error } = await safe(client.codePlayground.all())
+    if (error) {
+      toast.error(error?.message || String(error))
+      codePlaygroundState.value = 'idle'
+      return
+    }
+    allCodePlaygrounds.value = data
     const searchKeyword = toValue(search)
     codePlaygrounds.value = searchKeyword ? allCodePlaygrounds.value.filter(p => contains(p.name, searchKeyword)) : allCodePlaygrounds.value
-    playgroundState.value = 'idle'
+    codePlaygroundState.value = 'idle'
   }
   onMounted(loadCodePlaygrounds)
   watch(() => toValue(search), loadCodePlaygrounds)
 
   return {
-    playgroundState,
+    codePlaygroundState,
     codePlaygrounds,
     loadCodePlaygrounds,
   }

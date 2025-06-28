@@ -44,11 +44,11 @@ const activeView = computed({
     else if (route.path.startsWith('/utilities')) {
       return `utility:${route.params.id}`
     }
-    else if (route.path.startsWith('/snippets')) {
-      return `snippet:${route.params.id}`
+    else if (route.path.startsWith('/code-snippets')) {
+      return `code-snippet:${route.params.id}`
     }
-    else if (route.path.startsWith('/playground')) {
-      return `playground:${route.path.split('/').pop()}`
+    else if (route.path.startsWith('/code-playgrounds')) {
+      return `code-playground:${route.params.id}`
     }
     return undefined
   },
@@ -64,11 +64,11 @@ const activeView = computed({
       else if (type === 'utility') {
         router.replace(`/utilities/${id}`)
       }
-      else if (type === 'snippet') {
-        router.replace(`/snippets/${id}`)
+      else if (type === 'code-snippet') {
+        router.replace(`/code-snippets/${id}`)
       }
-      else if (type === 'playground') {
-        router.replace(`/playground/${id}`)
+      else if (type === 'code-playground') {
+        router.replace(`/code-playgrounds/${id}`)
       }
     }
   },
@@ -78,11 +78,11 @@ const sidebarGroupLabel = computed(() => {
   if (route.path.startsWith('/utilities')) {
     return 'Utilities'
   }
-  else if (route.path.startsWith('/snippets')) {
-    return 'Snippets'
+  else if (route.path.startsWith('/code-snippets')) {
+    return 'Code Snippets'
   }
-  else if (route.path.startsWith('/playground')) {
-    return 'Playgrounds'
+  else if (route.path.startsWith('/code-playgrounds')) {
+    return 'Code Playgrounds'
   }
   else {
     return 'Chats'
@@ -192,14 +192,14 @@ const settingsDialogOpen = ref(false)
               <SquarePen class="size-4 mr-1 opacity-65 group-hover/create-chat:opacity-100 transition-opacity" :class="!chatId ? 'opacity-100' : ''" /> New Chat
             </Button>
             <Button
-              v-if="route.path.startsWith('/snippets')"
+              v-if="route.path.startsWith('/code-snippets')"
               variant="ghost"
               size="sm"
               class="w-full !px-2 justify-start font-normal opacity-80 hover:opacity-100 hover:!bg-transparent transition-all group/create-chat"
-              :class="route.path === '/snippets/new' ? 'opacity-100' : ''"
-              @click="activeView = 'snippet:new'"
+              :class="route.path === '/code-snippets/new' ? 'opacity-100' : ''"
+              @click="activeView = 'code-snippet:new'"
             >
-              <SquarePen class="size-4 mr-1 opacity-65 group-hover/create-chat:opacity-100 transition-opacity" :class="route.path === '/snippets/new' ? 'opacity-100' : ''" /> New Snippet
+              <SquarePen class="size-4 mr-1 opacity-65 group-hover/create-chat:opacity-100 transition-opacity" :class="route.path === '/code-snippets/new' ? 'opacity-100' : ''" /> New Code Snippet
             </Button>
             <SidebarGroupLabel data-tauri-drag-region>
               {{ sidebarGroupLabel }}

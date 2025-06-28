@@ -24,12 +24,12 @@ const { profiles: _profiles, createProfile, updateProfile } = useLLMChatProfile(
 const providers = [
   { id: 'anthropic', name: 'Anthropic', modelListRefUrl: 'https://docs.anthropic.com/en/docs/about-claude/models/overview', apiKeyRefUrl: 'https://console.anthropic.com/settings/keys' },
   { id: 'cohere', name: 'Cohere', modelListRefUrl: 'https://docs.cohere.com/v2/docs/models', apiKeyRefUrl: 'https://dashboard.cohere.com/api-keys' },
-  { id: 'google-genai', name: 'Google Generative AI', modelListRefUrl: 'https://ai.google.dev/gemini-api/docs/models', apiKeyRefUrl: 'https://aistudio.google.com/apikey' },
-  { id: 'groq', name: 'Groq', modelListRefUrl: 'https://console.groq.com/docs/models', apiKeyRefUrl: 'https://console.groq.com/keys' },
+  { id: 'deepseek', name: 'DeepSeek', modelListRefUrl: 'https://api-docs.deepseek.com/quick_start/pricing', apiKeyRefUrl: 'https://platform.deepseek.com/api_keys' },
+  { id: 'google-generative-ai', name: 'Google Generative AI', modelListRefUrl: 'https://ai.google.dev/gemini-api/docs/models', apiKeyRefUrl: 'https://aistudio.google.com/apikey' },
   { id: 'mistralai', name: 'MistralAI', modelListRefUrl: 'https://docs.mistral.ai/getting-started/models/models_overview', apiKeyRefUrl: 'https://console.mistral.ai/api-keys' },
-  { id: 'ollama', name: 'Ollama', modelListRefUrl: undefined, apiKeyRefUrl: undefined },
   { id: 'openai', name: 'OpenAI', modelListRefUrl: 'https://platform.openai.com/docs/models', apiKeyRefUrl: 'https://platform.openai.com/settings/organization/api-keys' },
-  { id: 'xai', name: 'XAI', modelListRefUrl: 'https://docs.x.ai/docs/models', apiKeyRefUrl: 'https://console.x.ai/team/default/api-keys' },
+  { id: 'xai', name: 'xAI', modelListRefUrl: 'https://docs.x.ai/docs/models', apiKeyRefUrl: 'https://console.x.ai/team/default/api-keys' },
+  { id: 'ollama', name: 'Ollama', modelListRefUrl: undefined, apiKeyRefUrl: undefined },
 ]
 const provider = ref(props.update && providers.map(p => p.id).includes(props.update.provider) ? props.update.provider : 'anthropic')
 
@@ -46,7 +46,7 @@ const providerSpecificShape = {
       apiKey: z.string().min(1),
     }),
   },
-  'google-genai': {
+  'google-generative-ai': {
     configuration: z.object({}).default({}),
     credentials: z.object({
       apiKey: z.string().min(1),
@@ -184,7 +184,7 @@ const submit = handleSubmit(async (formValues) => {
             :href="providers.find(p => p.id === provider)!.apiKeyRefUrl!"
             target="_blank"
             rel="noopener noreferrer"
-            @click.prevent="openUrl(providers.find(p => p.id === provider)!.apiKeyRefUrl!)"
+            @click.stop.prevent="openUrl(providers.find(p => p.id === provider)!.apiKeyRefUrl!)"
           >{{ providers.find(p => p.id === provider)!.name }} API key</a>.
         </p>
         <ErrorMessage name="credentials.apiKey" class="text-destructive-foreground text-sm mt-1.5" />
