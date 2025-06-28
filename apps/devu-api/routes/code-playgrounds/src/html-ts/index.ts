@@ -79,7 +79,7 @@ export async function* exec(input: Input, config: ExecConfig): AsyncGenerator<Ex
         if (typeof arg === 'object' && arg !== null) return JSON.stringify(arg, getCircularReplacer(), 2);
         return String(arg);
       } catch (e) {
-        return '[Unserializable object: ' + e.message + ']';
+        return '[Unserializable object: ' + (e?.message || String(e)) + ']';
       }
     };
 
