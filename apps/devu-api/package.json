@@ -43,7 +43,7 @@
     "color-convert": "^3.1.0",
     "csv-parser": "^3.2.0",
     "drizzle-kit": "^0.31.1",
-    "drizzle-orm": "^0.43.1",
+    "drizzle-orm": "^0.44.0",
     "drizzle-zod": "^0.8.2",
     "html-minifier-terser": "^7.2.0",
     "js-beautify": "^1.15.4",
