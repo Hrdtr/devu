@@ -8,7 +8,7 @@ export const { meta, schema } = createDefinition({
     description: 'Playground to experiment with HTML, CSS, and TS (Browser).',
     icon: undefined,
     kind: 'framework',
-    referenceUrl: 'https://pyodide.org/en/stable/index.html',
+    referenceUrl: undefined,
     tags: ['html', 'css', 'ts', 'frontend'],
     related: [],
   },

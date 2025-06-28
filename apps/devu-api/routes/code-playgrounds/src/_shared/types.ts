@@ -6,7 +6,7 @@ export const MetaSchema = z.object({
   description: z.string(),
   icon: z.string().optional(),
   kind: z.enum(['language', 'framework']),
-  referenceUrl: z.string(),
+  referenceUrl: z.string().optional(),
   tags: z.string().array(),
   related: z.string().array(),
 })
