@@ -1,0 +1,13 @@
+Error happened while building AppImage bundle:
+---
+...
+Deploying dependencies for ELF file /workspaces/devu/apps/devu/tauri/target/release/bundle/appimage/Devu.AppDir/usr/lib/Devu/resources/api/node_modules/@libsql/linux-x64-musl/index.node
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  Failed to run ldd: exited with code 1
+failed to bundle project: `failed to run /home/codespace/.cache/tauri/linuxdeploy-x86_64.AppImage`
+       Error [tauri_cli_node] failed to bundle project: `failed to run /home/codespace/.cache/tauri/linuxdeploy-x86_64.AppImage`
+error: script "tauri" exited with code 1
+---
+
+The error probably because libsql installation also include all binaries for multiple architecture.
+In case of bundling in github action's ubuntu, the musl binary is incompatible with the glibc-based AppImage bundling process.
