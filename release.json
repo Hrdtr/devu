@@ -1,0 +1,19 @@
+{
+  "version": "1.0.10",
+  "notes": "",
+  "pub_date": "2025-06-29T07:21:19.086Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZStySVpPL1FDQXpOeUJaOU4rTUlYRVl0ei9XbkhMNFhVZlBJWDk0MEkyWU1QbWR5TnNnWmtuNlpNNS84T1ZJZThsM1VReVBTQ1ZwUzZ3TFhvQVlGM2dNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzUxMTgxMTc4CWZpbGU6RGV2dS5hcHAudGFyLmd6CjB1RW1ldjNJYzI3OGphWVJsL2xmaCtLWm12VHBTdjRzeFBNY0cydExlS3dBcXFNMmpFclpGRlVaU05RbWdxa2ZTWUQwOUhpS0JnSExNSWVadHU0OUNRPT0K",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_aarch64.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZXpVcWFpekxnM1V3U2d0bE9RVEdzeGxVSnVudGdEeSs3bndOL0lDTDBkcTBZbWppeFdSdXJQZFhpRFJXYzJkcC9mR3o3cHY0M0F2c3NqRHVLN3NJWmdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzUxMTgxMjcwCWZpbGU6RGV2dS5hcHAudGFyLmd6Ck44Q2g1NHdRRlBVNU5QeFRZdXJmK0Z5VEZHMWpPZ2lSYTZQZXF6MjkvWVQ2RFFFeVRuV08ycDBRdGRMSDZwZkhPT09YazdtUVNTQitYbVRGRng4aERRPT0K",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_x64.app.tar.gz"
+    },
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb0IwbC94V1NrZTMrRTg4dVBOOHFqUm84OEZ3cTMvNXFPbENPa0lIRmFPaXl5MUtjUTR4aUxZNERBOUN4T2FYRWtKMFFDWFNTM2tDK21vdnlLd2F6cFpBM0p2bXdjSHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzUxMTgxNTAyCWZpbGU6RGV2dV8xLjAuMTBfeDY0X2VuLVVTLm1zaQpxK3p2VUh4OUJXb0g4Q1ZINVVuck80MEg4VU5zS2RvbnFWdXVmSGxXVjQ1UnZjUDFRamp1dG1rTUZEeTA5S21NL05QQTZ4OEw4MFJJNU1QYm9CS1ZDZz09Cg==",
+      "url": "https://github.com/Hrdtr/devu/releases/latest/download/Devu_1.0.10_x64_en-US.msi"
+    }
+  }
+}
