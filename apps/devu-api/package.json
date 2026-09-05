@@ -22,7 +22,7 @@
     "@ai-sdk/xai": "^1.2.16",
     "@iarna/toml": "^2.2.5",
     "@json2csv/plainjs": "^7.0.6",
-    "@libsql/client": "^0.15.8",
+    "@libsql/client": "^0.18.0",
     "@mastra/core": "^0.10.1",
     "@mastra/libsql": "^0.10.0",
     "@mastra/memory": "^0.10.1",
